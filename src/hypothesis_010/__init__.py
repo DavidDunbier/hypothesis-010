@@ -27,7 +27,7 @@ def from_template(template_name: str) -> st.SearchStrategy[bytes]:
 def recursivehelper(node: py010parser.c_ast.Node, byte_count: int):
     if (len(node.children()) > 0):
         #TODO: Add a function here that takes a node name and adds the prerequisite bytes
-        #Eg. a document in this spec has to have a size beforehand - will that
+        #Eg. a document in this spec has to have an int32 (size) beforehand
         for child_name, child in node.children():
             if (isinstance(child, list)):
                 for elem in child:
@@ -35,17 +35,20 @@ def recursivehelper(node: py010parser.c_ast.Node, byte_count: int):
             else:
                 recursivehelper(child, byte_count)
     else:
+        #These end nodes would be where I assign fixed amount of bytes for each datatype
         if (hasattr(node, 'name')):
             print("end node of:", node.name)
         elif (hasattr(node, 'names')):
             node_name = ""
             for item in node.names:
-                node_name += item
+                node_name += item + " "
             print("end node of:", node_name)
         elif (isinstance(node, py010parser.c_ast.Constant)):
             print("Constant here of type", node.type, "at value:", node.value)
         else:
             print(node, "is an end node of another type")
+        
+        if node.name 
             
 
 def value_from_template(ast: py010parser.c_ast.FileAST) -> st.SearchStrategy[any]:
