@@ -1,0 +1,738 @@
+//------------------------------------------------
+//--- 010 Editor v3.2.2 Binary Template
+//
+//      File: EDID.bt
+//   Authors: Rafael Vuijk
+//   Version: 1.2
+//   Purpose: Template for EDID files (Extended 
+//            display identification data). 
+//  Category: Electronics
+// File Mask: edid.bin,*.edid
+//  ID Bytes: 00 FF FF FF FF FF FF 00
+//   History: 
+//   1.2   2018-05-04 J Andersen: Added +1 to DataBlockSize to include size byte itself.
+//   1.1.1 2016-06-14 SweetScape Software: Removed some invalid null characters.
+//   1.1   2016-02-11 SweetScape Software: Updated header for repository submission.
+//   1.0   2012-03-02 R Vuijk: Initial release.
+//
+// NOTE: This template uses variable-size/unoptimized structure arrays.
+// Information source: https://en.wikipedia.org/wiki/Extended_display_identification_data
+// Modeline calculator: http://www.epanorama.net/faq/vga2rgb/calc.html
+//
+//------------------------------------------------
+
+typedef uint16 EISAId ;
+
+string EISAIdToString(EISAId x)
+{
+    uint16 sw = SwapBytes(x);
+    string s;
+    SPrintf(s, "%c%c%c", '@' + (sw>>10 & 0x1F), '@' + (sw>>5 & 0x1F), '@' + (sw>>0 & 0x1F));
+    return s;
+}
+
+void StringToEISAId(EISAId &x, string s)
+{
+    char c[3];
+    SScan(s, "%c%c%c", c[0], c[1], c2[2]);
+    x = (c[0] - '@')<<10 | (c[1] - '@')<<5 | (c[2] - '@')<<0;
+    x = SwapBytes(x);
+}
+
+//--------------------------------------
+
+typedef struct
+{
+    ubyte x_resolution;
+    ubyte vFrequency : 6;
+    ubyte pixelRatio : 2;
+} Timing ;
+
+string TimingToString(Timing &t)
+{
+    if (t.x_resolution == 1 && t.vFrequency == 1 && t.pixelRatio == 0) return "-";
+    int x = (t.x_resolution + 31) * 8;
+    int y;
+    switch (t.pixelRatio)
+    {
+        case 0: y = x*10/16; break;
+        case 1: y = x*3/4; break;
+        case 2: y = x*4/5; break;
+        case 3: y = x*9/16; break;
+    }
+    string s;
+    SPrintf(s, "%ux%u, %uHz", x, y, t.vFrequency + 60);
+    return s;
+}
+
+//--------------------------------------
+
+enum  DescriptorType
+{
+    TIMINGS             = 0xFA, // Additional standard timing identifiers. 6- 2-byte descriptors, padded with 0A.
+    WHITE_POINT         = 0xFB, // Additional white point data. 2- 5-byte descriptors, padded with 0A 20 20.    
+    MONITOR_NAME        = 0xFC, // Monitor name (text)
+    RANGE_LIMITS        = 0xFD, // Monitor range limits. 6- or 13-byte binary descriptor.
+    UNSPECIFIED_TEXT    = 0xFE, // Unspecified text (text)
+    SERIAL_NUMBER       = 0xFF, // Monitor serial number (text)
+};
+
+//--------------------------------------
+
+enum  FormatCode
+{
+    RESERVED = 0,
+    LPCM = 1,
+    AC_3 = 2,
+    MPEG1 = 3,
+    MP3 = 4,
+    MPEG2 = 5,
+    AAC = 6,
+    DTS = 7,
+    ATRAC = 8,
+    SACD = 9,
+    DD_PLUS = 10,
+    DTS_HD = 11,
+    MLP_TRUEHD = 12,
+    DST = 13,
+    WMA_PRO = 14,
+    RESERVED2 = 15,
+};
+
+//--------------------------------------
+
+enum  BlockType
+{
+    AUDIO = 1,
+    VIDEO = 2,
+    VENDOR_SPECIFIC = 3,
+    SPEAKER = 4,
+};
+
+//--------------------------------------
+
+enum  SVDIndex
+{
+    _DMT0659    = 1,        //  4:3                640x480p @ 59.94/60Hz
+    _480p       = 2,        //  4:3                720x480p @ 59.94/60Hz
+    _480pH      = 3,        // 16:9                720x480p @ 59.94/60Hz
+    _720p       = 4,        // 16:9               1280x720p @ 59.94/60Hz
+    _1080i      = 5,        // 16:9              1920x1080i @ 59.94/60Hz
+    _480i       = 6,        //  4:3          720(1440)x480i @ 59.94/60Hz
+    _480iH      = 7,        // 16:9          720(1440)x480i @ 59.94/60Hz
+    _240p       = 8,        //  4:3          720(1440)x240p @ 59.94/60Hz
+    _240pH      = 9,        // 16:9          720(1440)x240p @ 59.94/60Hz
+    _480i4x     = 10,       //  4:3             (2880)x480i @ 59.94/60Hz
+    _480i4xH    = 11,       // 16:9             (2880)x480i @ 59.94/60Hz
+    _240p4x     = 12,       //  4:3             (2880)x240p @ 59.94/60Hz
+    _240p4xH    = 13,       // 16:9             (2880)x240p @ 59.94/60Hz
+    _480p2x     = 14,       //  4:3               1440x480p @ 59.94/60Hz
+    _480p2xH    = 15,       // 16:9               1440x480p @ 59.94/60Hz
+    _1080p      = 16,       // 16:9              1920x1080p @ 59.94/60Hz
+    _576p       = 17,       //  4:3                720x576p @ 50Hz
+    _576pH      = 18,       // 16:9                720x576p @ 50Hz
+    _720p50     = 19,       // 16:9               1280x720p @ 50Hz
+    _1080i25    = 20,       // 16:9              1920x1080i @ 50Hz*
+    _576i       = 21,       //  4:3          720(1440)x576i @ 50Hz
+    _576iH      = 22,       // 16:9          720(1440)x576i @ 50Hz
+    _288p       = 23,       //  4:3          720(1440)x288p @ 50Hz
+    _288pH      = 24,       // 16:9          720(1440)x288p @ 50Hz
+    _576i4x     = 25,       //  4:3             (2880)x576i @ 50Hz
+    _576i4xH    = 26,       // 16:9             (2880)x576i @ 50Hz
+    _288p4x     = 27,       //  4:3             (2880)x288p @ 50Hz
+    _288p4xH    = 28,       // 16:9             (2880)x288p @ 50Hz
+    _576p2x     = 29,       //  4:3               1440x576p @ 50Hz
+    _576p2xH    = 30,       // 16:9               1440x576p @ 50Hz
+    _1080p50    = 31,       // 16:9              1920x1080p @ 50Hz
+    _1080p24    = 32,       // 16:9              1920x1080p @ 23.98/24Hz
+    _1080p25    = 33,       // 16:9              1920x1080p @ 25Hz
+    _1080p30    = 34,       // 16:9              1920x1080p @ 29.97/30Hz
+    _480p4x     = 35,       //  4:3             (2880)x480p @ 59.94/60Hz
+    _480p4xH    = 36,       // 16:9             (2880)x480p @ 59.94/60Hz
+    _576p4x     = 37,       //  4:3             (2880)x576p @ 50Hz
+    _576p4xH    = 38,       // 16:9             (2880)x576p @ 50Hz
+    _1080i25b   = 39,       // 16:9  1920x1080i(1250 Total) @ 50Hz*
+    _1080i50    = 40,       // 16:9              1920x1080i @ 100Hz
+    _720p100    = 41,       // 16:9               1280x720p @ 100Hz
+    _576p100    = 42,       //  4:3                720x576p @ 100Hz
+    _576p100H   = 43,       // 16:9                720x576p @ 100Hz
+    _576i50     = 44,       //  4:3          720(1440)x576i @ 100Hz
+    _576i50H    = 45,       // 16:9          720(1440)x576i @ 100Hz
+    _1080i60    = 46,       // 16:9              1920x1080i @ 119.88/120Hz
+    _720p120    = 47,       // 16:9               1280x720p @ 119.88/120Hz
+    _480p119    = 48,       //  4:3                720x480p @ 119.88/120Hz
+    _480p119H   = 49,       // 16:9                720x480p @ 119.88/120Hz
+    _480i59     = 50,       //  4:3          720(1440)x480i @ 119.88/120Hz
+    _480i59H    = 51,       // 16:9          720(1440)x480i @ 119.88/120Hz
+    _576p200    = 52,       //  4:3                720x576p @ 200Hz
+    _576p200H   = 53,       // 16:9                720x576p @ 200Hz
+    _576i100    = 54,       //  4:3          720(1440)x576i @ 200Hz
+    _576i100H   = 55,       // 16:9          720(1440)x576i @ 200Hz
+    _480p239    = 56,       //  4:3                720x480p @ 239.76/240Hz
+    _480p239H   = 57,       // 16:9                720x480p @ 239.76/240Hz
+    _480i119    = 58,       //  4:3          720(1440)x480i @ 239.76/240Hz
+    _480i119H   = 59,       // 16:9          720(1440)x480i @ 239.76/240Hz
+    _720p24     = 60,       // 16:9               1280x720p @ 23.98/24Hz
+    _720p25     = 61,       // 16:9               1280x720p @ 25Hz
+    _720p30     = 62,       // 16:9               1280x720p @ 29.97/30Hz
+    _1080p120   = 63,       // 16:9              1920x1080p @ 119.88/120Hz
+};
+
+typedef struct
+{
+    SVDIndex index : 7 ;
+    ubyte native : 1 ;
+} SVD ;
+
+string SVDToString(SVD &svd)
+{
+    string s;
+    SPrintf(s, "%s%s (%u)", (svd.native ? "*" : ""), EnumToString(svd.index), svd.index);
+    return s;
+}
+
+//--------------------------------------
+
+string SPAToString(uint16 spa)
+{
+    string s;
+    SPrintf(s, "%u.%u.%u.%u", spa>>4&15, spa>>0&15, spa>>12&15, spa>>8&15);
+    return s;
+}
+
+//--------------------------------------
+
+string TDMSFreqToString(ubyte f)
+{
+    string s;
+    SPrintf(s, "%u MHz", (uint)f * 5);
+    return s;
+}
+
+//--------------------------------------
+
+string PixelClockToString(uint16 f)
+{
+    string s;
+    SPrintf(s, "%.2lf MHz", (double)f / 100);
+    return s;
+}
+
+void StringToPixelClock(uint16 &f, string s)
+{
+    f = Atof(s) * 100;
+}
+
+//--------------------------------------
+
+typedef ubyte PixelRate ;
+
+string PixelRateToString(PixelRate f)
+{
+    string s;
+    SPrintf(s, "%u MHz", (uint)f * 10);
+    return s;
+}
+
+void StringToPixelRate(PixelRate &f, string s)
+{
+    f = Atof(s) / 10;
+}
+
+//--------------------------------------
+
+typedef ubyte BitRate ;
+
+string BitRateToString(BitRate b)
+{
+    string s;
+    SPrintf(s, "%u kHz", (uint)b * 8);
+    return s;
+}
+
+void StringToBitRate(BitRate &b, string s)
+{
+    b = Atof(s) / 8;
+}
+
+//--------------------------------------
+
+typedef ubyte Latency ;
+
+string LatencyToString(Latency l)
+{
+    if (l == 0) return "-";
+    string s;
+    SPrintf(s, "%u ms", ((uint)l - 1) * 2);
+    return s;
+}
+
+void StringToLatency(Latency &l, string s)
+{
+    if (s == "-") l = 0; else l = (uint)(Atof(s) / 2) + 1;
+}
+
+//--------------------------------------
+
+typedef struct
+{
+    ubyte size : 5 ;
+    BlockType typeTag : 3 ;
+
+//                        local int64 dataStart  = FTell();
+    switch (typeTag)
+    {
+        case AUDIO:
+        {
+            ubyte channelCount : 3 ;
+            FormatCode formatCode : 4 ;
+            ubyte reserved1 : 1;
+            struct SampleRates
+            {
+                ubyte _32kHz : 1;
+                ubyte _44kHz : 1;
+                ubyte _48kHz : 1;
+                ubyte _88kHz : 1;
+                ubyte _96kHz : 1;
+                ubyte _176kHz : 1;
+                ubyte _192kHz : 1;
+                ubyte reserved : 1;
+            } sampleRates ;
+            if (formatCode == 1)    // LPCM
+            {
+                ubyte _16bits : 1;
+                ubyte _20bits : 1;
+                ubyte _24bits : 1;
+                ubyte reserved : 5;
+            }
+            else
+            {
+                BitRate bitrate;
+            }
+            break;
+        }
+
+        case VIDEO:
+        {
+            SVD svds[size] ;
+            break;
+        }
+
+        case VENDOR_SPECIFIC:
+        {
+            ubyte oui[3] ;
+            uint16 spa ;
+            if (size >= 3)
+            {
+                ubyte DVI_Dual : 1  ;
+                ubyte reserved : 1;
+                ubyte reserved : 1;
+                ubyte dc_Y444 : 1 ;
+                ubyte dc_30bit : 1 ;
+                ubyte dc_36bit : 1 ;
+                ubyte dc_48bit : 1 ;
+                ubyte supports_AI : 1 ;
+            }
+            if (size >= 4)
+                ubyte max_TMDS_Frequency ;
+            if (size >= 5)
+            {
+                ubyte reserved : 6;
+                ubyte i_latency_fields : 1 ;
+                ubyte latency_fields : 1 ;
+                if (latency_fields)
+                {
+                    Latency videoLatency ;
+                    Latency audioLatency ;
+                }
+                if (i_latency_fields)
+                {
+                    Latency interlacedVideoLatency ;
+                    Latency interlacedAudioLatency ;
+                }
+            }
+            break;
+        }
+
+        case SPEAKER:
+        {
+            ubyte frontLeftRight : 1 ;
+            ubyte LFE : 1 ;
+            ubyte frontCenter : 1 ;
+            ubyte rearLeftRight : 1 ;
+            ubyte rearCenter : 1 ;
+            ubyte frontLeftRightCenter : 1 ;
+            ubyte rearLeftRightCenter : 1 ;
+            ubyte reserved : 1;
+            ubyte reserved[2];
+            break;
+        }
+    }   // switch
+
+//                        local int64 dataEnd  = FTell();
+//                        Printf("block size: %u %lu\n", size, dataEnd - dataStart);
+
+/*                        Assert(dataEnd - dataStart <= size, "Data block size error");
+    if (dataEnd - dataStart < size)
+    {
+        ubyte extraData[size - (dataEnd - dataStart)];
+    }*/
+} DataBlock ;
+
+int DataBlockSize(DataBlock &b)
+{
+    return (ReadUByte(startof(b)) & 0x1F) + 1;
+}
+
+//--------------------------------------
+
+typedef struct
+{
+    uint16 pixelClock ;
+
+    ubyte hActive_lsb ;
+    ubyte hBlanking_lsb ;
+    ubyte hBlanking_msb : 4 ;
+    ubyte hActive_msb : 4 ;
+    ubyte vActive_lsb ;
+    ubyte vBlanking_lsb ;
+    ubyte vBlanking_msb : 4 ;
+    ubyte vActive_msb : 4 ;
+    ubyte hSyncOffset_lsb ;
+    ubyte hSync_lsb ;
+    ubyte vSync_lsb : 4 ;
+    ubyte vSyncOffset_lsb : 4 ;
+    ubyte vSync_msb : 2 ;
+    ubyte vSyncOffset_msb : 2 ;
+    ubyte hSync_msb : 2 ;
+    ubyte hSyncOffset_msb : 2 ;
+    ubyte hSize_lsb ;
+    ubyte vSize_lsb ;
+    ubyte vSize_msb : 4 ;
+    ubyte hSize_msb : 4 ;
+    ubyte hBorder ;
+    ubyte vBorder ;
+
+    ubyte _f0 : 1 ;
+    ubyte _f1 : 1 ;
+    ubyte _f2 : 1 ;
+    ubyte _f34 : 2 ;
+    ubyte _f56 : 2 ;
+    ubyte interlaced : 1 ;
+
+    //if (_f34 >> 1 & 1) Printf("Digital sync: "); else Printf("Analog sync: ");
+    //if (_f34 >> 0 & 1) Printf("Bipolar/separate\n"); else Printf("Composite\n");
+} ModeLine ;
+
+string ModeLineToString(ModeLine &n)
+{
+    uint hActive = (uint)n.hActive_msb<<8 | n.hActive_lsb;
+    uint hSyncOffset = (uint)n.hSyncOffset_msb<<8 | n.hSyncOffset_lsb;
+    uint hSync = (uint)n.hSync_msb<<8 | n.hSync_lsb;
+    uint hBlanking = (uint)n.hBlanking_msb<<8 | n.hBlanking_lsb;
+
+    uint vActive = (uint)n.vActive_msb<<8 | n.vActive_lsb;
+    uint vSyncOffset = (uint)n.vSyncOffset_msb<<8 | n.vSyncOffset_lsb;
+    uint vSync = (uint)n.vSync_msb<<8 | n.vSync_lsb;
+    uint vBlanking = (uint)n.vBlanking_msb<<8 | n.vBlanking_lsb;
+
+    uint im = n.interlaced ? 2 : 1;
+    string s;
+    SPrintf(s, "Modeline \"%ux%u\"   %.2lf   %4u %4u %4u %4u   %4u %4u %4u %4u  %chsync %cvsync %s  ; %u %u",       // relative to absolute
+        hActive, vActive*im, (double)n.pixelClock / 100,
+        hActive, hActive + hSyncOffset, hActive + hSyncOffset + hSync, hActive + hBlanking,
+        vActive*im, (vActive + vSyncOffset)*im, (vActive + vSyncOffset + vSync)*im, (vActive + vBlanking)*im,
+        n._f1 ? '+' : '-', n._f2 ? '+' : '-',
+        n.interlaced ? "Interlace" : "",
+        n.hBorder, n.vBorder
+    );
+    return s;
+}
+
+void StringToModeLine(ModeLine &n, string s)
+{
+    uint dummy;
+    uint hActive, hActive_hSyncOffset, hActive_hSyncOffset_hSync, hActive_hBlanking;
+    uint vActive, vActive_vSyncOffset, vActive_vSyncOffset_vSync, vActive_vBlanking;
+    char hsync, vsync;
+    string interlaced;
+    double f;
+    SScanf(s, "Modeline \"%ux%u\"   %lf   %u %u %u %u   %u %u %u %u  %chsync %cvsync %[^0-9;]",
+        dummy, dummy, f,
+        hActive, hActive_hSyncOffset, hActive_hSyncOffset_hSync, hActive_hBlanking,
+        vActive, vActive_vSyncOffset, vActive_vSyncOffset_vSync, vActive_vBlanking,
+        hsync, vsync,
+        interlaced
+    );
+    int p = Strchr(s, ';');
+    if (p >= 0) SScanf(SubStr(s, p), "; %u %u", n.hBorder, n.vBorder);
+
+    n.interlaced = (interlaced[0] == 'I');
+    uint im = n.interlaced ? 2 : 1;
+
+    uint hBlanking = hActive_hBlanking - hActive;
+    uint hSync = hActive_hSyncOffset_hSync - hActive_hSyncOffset;
+    uint hSyncOffset = hActive_hSyncOffset - hActive;
+    n.hActive_msb = hActive>>8; n.hActive_lsb = (ubyte)hActive;
+    n.hSyncOffset_msb = hSyncOffset>>8; n.hSyncOffset_lsb = (ubyte)hSyncOffset;
+    n.hSync_msb = hSync>>8; n.hSync_lsb = (ubyte)hSync;
+    n.hBlanking_msb = hBlanking>>8; n.hBlanking_lsb = (ubyte)hBlanking;
+
+    uint vBlanking = (vActive_vBlanking - vActive)/im;
+    uint vSync = (vActive_vSyncOffset_vSync - vActive_vSyncOffset)/im;
+    uint vSyncOffset = (vActive_vSyncOffset - vActive)/im;
+    vActive /= im;
+    n.vActive_msb = vActive>>8; n.vActive_lsb = (ubyte)vActive;
+    n.vSyncOffset_msb = vSyncOffset>>8; n.vSyncOffset_lsb = (ubyte)vSyncOffset;
+    n.vSync_msb = vSync>>8; n.vSync_lsb = (ubyte)vSync;
+    n.vBlanking_msb = vBlanking>>8; n.vBlanking_lsb = (ubyte)vBlanking;
+
+    n._f1 = hsync == '+' ? 1 : 0;
+    n._f2 = vsync == '+' ? 1 : 0;
+    n.pixelClock = f * 100;
+}
+
+//--------------------------------------
+
+struct File
+{
+    struct Header
+    {
+        ubyte pattern[8] ;
+        EISAId eisaId ;
+        uint16 mfgProductId ;
+        uint32 serial ;
+        ubyte mfgWeek ;
+        ubyte mfgYear ;
+        ubyte edidVersion ;
+        ubyte edidRevision ;
+    } header ;
+
+    struct Basic
+    {
+        union Bitmap
+        {
+            ubyte hmz;
+            if (hmz & 0x80)
+            {
+                struct Digital
+                {
+                    ubyte vesa : 1 ;
+                    ubyte reserved : 6 ;
+                    ubyte digital : 1 ;
+                } digital;
+            }
+            else
+            {
+                struct Analog
+                {
+                    ubyte vSeparate : 1 ;
+                    ubyte syncOnGreen : 1 ;
+
+                    ubyte compositeSync : 1 ;
+                    ubyte separateSync : 1 ;
+                    ubyte blankToBlack : 1 ;
+                    ubyte level : 2 ;
+                    ubyte analog : 1 ;
+                } analog;
+            }
+        } bitmap ;
+
+        ubyte width ;
+        ubyte height ;
+        ubyte gamma ;
+
+        struct Features
+        {
+            ubyte gtf : 1 ;
+            ubyte prefTimingDesc1 : 1 ;
+            ubyte sRGB : 1 ;
+            if (bitmap.hmz & 0x80)
+                ubyte displayType : 2 ;
+            else
+                ubyte displayType : 2 ;
+            ubyte dpmsActiveOff : 1 ;
+            ubyte dpmsSusepend : 1 ;
+            ubyte dpmsStandby : 1 ;
+        } features ;
+    } basic ;
+
+    struct Chromaticity
+    {
+        ubyte green_y_lsb : 2 ;
+        ubyte green_x_lsb : 2 ;
+        ubyte red_y_lsb : 2 ;
+        ubyte red_x_lsb : 2 ;
+        ubyte bluewhite_lsb : 2 ;
+        ubyte zero : 6;     // Lelouch
+        ubyte red_x_msb ;
+        ubyte red_y_msb ;
+        ubyte green_x_msb ;
+        ubyte green_y_msb ;
+        ubyte blue_x_msb ;
+        ubyte blue_y_msb ;
+        ubyte white_x_msb ;
+        ubyte white_y_msb ;
+    } chromaticity ;
+    
+    struct Timings
+    {
+        ubyte _800x600_60 : 1;
+        ubyte _800x600_56 : 1;
+        ubyte _640x480_75 : 1;
+        ubyte _640x480_72 : 1;
+        ubyte _640x480_67 : 1;
+        ubyte _640x480_60 : 1;
+        ubyte _720x400_88 : 1;
+        ubyte _720x400_70 : 1;
+        ubyte _1280x1024_75 : 1;
+        ubyte _1024x768_75 : 1;
+        ubyte _1024x768_72 : 1;
+        ubyte _1024x768_60 : 1;
+        ubyte _1024x768i_87 : 1;
+        ubyte _832x624_75 : 1;
+        ubyte _800x600_75 : 1;
+        ubyte _800x600_72 : 1;
+        ubyte mfgSpecific : 7;
+        ubyte _1152x870_75 : 1; // Apple Macintosh II
+    } timings ;
+
+    Timing timings2[8] ;
+    
+    struct Descriptor
+    {
+        if (ReadUShort(FTell()) != 0)
+        {
+            ModeLine numbers;
+        }
+        else
+        {
+            uint16 zero;
+            ubyte zero;
+            DescriptorType descriptorType;   // FA-FF currently defined. 00-0F reserved for vendors.
+            ubyte zero;
+            switch (descriptorType)
+            {
+                case TIMINGS:
+                    Timing timings[6] ;
+                    break;
+
+                case MONITOR_NAME:
+                    char name[13] ;
+                    break;
+
+                case SERIAL_NUMBER:
+                    char serial[13] ;
+                    break;
+
+                case UNSPECIFIED_TEXT:
+                    char text[13] ;
+                    break;
+
+                case RANGE_LIMITS:  // Monitor range limits. 6- or 13-byte binary descriptor.
+                {
+                    ubyte vMinRate ;
+                    ubyte vMaxRate ;
+                    ubyte hMinRate ;
+                    ubyte hMaxRate ;
+                    PixelRate maxPixelRate ;
+                    ubyte extended ;
+                    if (extended == 0x02)
+                    {
+                        ubyte reserved;
+                        ubyte startFreqSecondCurve ;
+                        ubyte gtf_C ;
+                        uint16 gtf_M ;
+                        ubyte gtf_K ;
+                        ubyte gtf_J ;
+                    }
+                    else
+                    {
+                        ubyte padding[7] ;
+                    }
+                    break;
+                }
+
+                case WHITE_POINT:  // Additional white point data. 2- 5-byte descriptors, padded with 0A 20 20.
+                {
+                    struct
+                    {
+                        ubyte indexNumber ;
+                        ubyte white_y_lsb : 2 ;
+                        ubyte white_x_lsb : 2 ;
+                        ubyte unused : 4;   // (C) DarkFader
+                        ubyte white_x_msb ;
+                        ubyte white_y_msb ;
+                        ubyte gamma ;
+                    } whitePoints[2] ;
+                    ubyte padding[3] ;
+                    break;
+                }
+
+                default:
+                {
+                    ubyte unknown[13];
+                    Warning("Unknown descriptor type");
+                    break;
+                }
+            }
+        }
+    } descriptors[4] ;
+
+
+    ubyte extensionCount ;
+    ubyte checksum ;
+
+//--------------------------------------
+
+    struct CEA_EDID
+    {
+        local int64 extensionBlockStart  = FTell();
+
+        ubyte extensionTag ;
+        switch (extensionTag)
+        {
+            case 0x02:  // Additional Timing Data Block (CEA EDID Timing Extension)
+            {
+                ubyte revision ;
+                ubyte dtdStart ;
+                ubyte dtdCount : 4 ;
+                ubyte YCbCr422 : 1 ;
+                ubyte YCbCr444 : 1 ;
+                ubyte basic_audio : 1 ;
+                ubyte underscan : 1 ;
+
+                while (FTell() < extensionBlockStart + dtdStart)
+                {
+                    DataBlock dataBlock;
+                }   // while
+                
+                if (FTell() != extensionBlockStart + dtdStart)
+                {
+                    Warning("Unexpected DTD start");
+                }
+                
+                FSeek(extensionBlockStart + dtdStart);
+
+                while (ReadUShort(FTell()) != 0)
+                {
+                    Descriptor descriptor ;
+                }
+
+                ubyte padding[127 - (FTell() - extensionBlockStart)] ;
+                ubyte checksum ;
+                if (Checksum(CHECKSUM_SUM8, extensionBlockStart, 128) != 0) Warning("Invalid extension block checksum!");
+
+                break;
+            }
+
+            default:
+                Warning("Unsupported extension block");
+                break;
+        }
+    } extensions[extensionCount] ;
+
+
+} file ;
+
+//--------------------------------------

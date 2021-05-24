@@ -1,0 +1,60 @@
+//------------------------------------------------
+//--- 010 Editor Binary Template
+//
+//      File: ASTERIX.bt
+//   Authors: Kevin O. Grover
+//    E-mail: kevin.grover@jt4llc.com
+//   Version: 0.1
+//   Purpose: Eurocontrol ASTERIX Data
+//  Category: Network
+// File Mask: *.asterix
+//   History:
+//   0.1   2016-05-27 kog: Original Version.
+//
+// ASTERIX (All Purpose Structured Eurocontrol Surviellance
+// Information Exchange)
+//
+// EUROCONTROL-SPEC-0149 Ed 2.3
+// http://www.eurocontrol.int/services/asterix
+//
+// There are no magic identifiers.  Data layout:
+//
+// Block                   # called 'packet' in WSD
+//    
+//   Record...             # called 'message' in WSD
+//     [ Data_Item...]...
+//
+// WSD = Wireshark Dissector (packet_asterix.c)
+//
+// Blocks hold one or more Messages of the same category.
+// You must know the format in order to be able to decode
+// the messages.  They have an FSPEC (Field
+// Specification) field that has a bit on/off for whether each
+// field is present.  The data for each present field follows
+// in the same order a in the FSPEC.   NOTE: FPEC bit meaning
+// is unique for each category.
+//------------------------------------------------
+
+BigEndian();
+
+typedef ubyte uint8;
+
+typedef struct {
+    uint8  category;
+    uint16 length;    // len(data) + 3 [len(category) + len(length)]
+    if (length <= 3) {
+        Printf("ERROR: Bad length: %d (must be > 3)", length);
+        Exit(1);
+    }
+    uint8  data[length - 3];
+} Block ;
+
+string read_Block(Block &b) {
+    string res;
+    SPrintf(res, "I%03d", b.category);
+    return res;
+}
+
+while(!FEof()) {
+    Block block;
+}

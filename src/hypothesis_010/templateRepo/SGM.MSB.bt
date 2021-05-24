@@ -1,0 +1,85 @@
+//------------------------------------------------
+//--- 010 Editor v5.0 Binary Template
+//
+//      File: SGM.MSB.bt
+//   Authors: 0xFAIL
+//   Version: 0.8
+//   Purpose: Parses the level data models format from levels.gfs, used in Z-Engine (SkullGirls).
+//  Category: Game
+// File Mask: *.sgm.msb
+//  ID Bytes:
+//   History: 
+//   0.8   2014-03-30 0xFAIL: Initial release.
+//
+// Skullgirls level, model file.
+// Array optimisation is broken? has to be disabled when using Pascal64String arrays.
+// uchar4 is a vec4 part?
+//------------------------------------------------
+BigEndian();
+
+typedef struct{
+    uint64 count ;
+    char chars[count] ;
+} Pascal64String ;
+
+string Pascal64String_Read(Pascal64String &v){ return v.chars; }
+
+struct FILE{
+    Pascal64String file_format_revision ;
+    Pascal64String textureName ;
+    float unknown1[13] ;
+    Pascal64String dataFormat ;
+    uint64 dataFormatLengthPerPolygon ;
+    uint64 nOfPolygons;
+    uint64 nOfTriangles ;
+    uint64 nOfBones ;
+    struct POLYGON{
+        uchar data[dataFormatLengthPerPolygon] ;
+    }polygon[nOfPolygons] ;
+    struct TRIANGLE{
+        short firstPolygonIndex ;
+        short secondPolygonIndex ;
+        short thirdPolygonIndex ;
+    }triangle[nOfTriangles];
+    struct maybeModelDataOrBoundingBoxForSorting{
+        float xPos ;
+        float yPos ;
+        float zPos ;
+
+        float xRot ;
+        float yRot ;
+        float zRot ;
+    }model_data;
+    struct BONE_NAMES{
+        Pascal64String boneName[nOfBones] ;
+    }bone_name;
+    struct BONE_PROPERTIES{
+        float unknown3[16] ;
+    }bone_properties[nOfBones];
+}file ;
+
+//http://www.intrepid-web.net/010-editor/
+char[] get_filename(char full_path[], char delimiter[])
+{
+    
+    int     i;
+    int     length, deli_len, del_index;
+    char    file_name[];
+
+    deli_len = Strlen(delimiter);
+
+    length = Strlen(full_path);
+    file_name = full_path;
+    i=0;
+    while(Strstr(file_name, delimiter) > -1)
+    {
+        del_index = Strstr(file_name, delimiter);
+        file_name = SubStr(file_name, del_index+deli_len, -1);
+    }
+    
+    return file_name;
+}
+
+string FILE_read(FILE &f){
+    return get_filename(GetFileName(),"\\");
+}

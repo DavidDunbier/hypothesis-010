@@ -1,0 +1,228 @@
+//------------------------------------------------
+//--- 010 Editor v4.0 Binary Template
+//
+//      File: NDS.bt
+//   Authors: gocha
+//   Version: 1.0
+//   Purpose: Defines a template for
+//            Nintendo DS cartridge files.
+//  Category: Game
+// File Mask: *.nds
+//  ID Bytes: [+0x200]
+//   History: 
+//   1.0   2017-08-15 gocha: Initial release.
+//
+// Structure definitions are based on DeSmuME (GNU General Public License v2.0)
+//------------------------------------------------
+
+typedef WORD CRC16;
+
+local int cGrayZone = 0xd9dadc;
+local int cOrange = 0xaae3f9;
+local int cSytrus = 0xaaf7ff;
+local int cGreenGreens = 0xaaecdf;
+local int cCureMarine = 0xffe1ce;
+local int cCureMarine_Alt = 0xfdf1dd;
+local int cPurpleMadness = 0xeec3dd;
+local int cPurpleMadness_Alt = 0xffe1fa;
+
+//-----------------------------------
+// Define structures used in NDS files
+
+// NDS Region
+typedef enum  {
+    normal = 0,
+    korea = 0x40,
+    china = 0x80,
+} NDSRegion;
+
+typedef struct {
+    SetBackColor(cOrange);
+    UCHAR   gameTile[12]        ;
+    UCHAR   gameCode[4]         , 0=homebrew)">;
+    WORD    makerCode           ;
+    UBYTE   unitCode            ;
+    UBYTE   deviceCode          ;
+    UBYTE   cardSize            ;
+    SetBackColor(cGrayZone);
+    BYTE    reserved1[8]        ;
+    SetBackColor(cOrange);
+    NDSRegion region            ;
+    UBYTE   romversion          ;
+    UBYTE   autostart           ;
+
+    SetBackColor(cSytrus);
+    DWORD   arm9src             ;
+    DWORD   arm9exe             ;
+    DWORD   arm9cpy             ;
+    DWORD   arm9binSize         ;
+
+    DWORD   arm7src             ;
+    DWORD   arm7exe             ;
+    DWORD   arm7cpy             ;
+    DWORD   arm7binSize         ;
+
+    DWORD   fNameTblOff         ;
+    DWORD   fNameTblSize        ;
+
+    DWORD   fatOff              ;
+    DWORD   fatSize             ;
+
+    DWORD   arm9OverlayOff      ;
+    DWORD   arm9OverlaySize     ;
+    DWORD   arm7OverlayOff      ;
+    DWORD   arm7OverlaySize     ;
+
+    SetBackColor(cGreenGreens);
+    DWORD   normalCmd           ;
+    DWORD   key1Cmd             ;
+
+    DWORD   iconOff             ;
+    WORD    crc16               ;
+    WORD    romTimeout          ;
+    DWORD   arm9autoload        ;
+    DWORD   arm7autoload        ;
+
+    SetBackColor(cGrayZone);
+    UBYTE   infoResevedRegion[8]    ;
+
+    SetBackColor(cCureMarine);
+    DWORD   endROMoffset        ;
+    DWORD   headerSize          ;
+    DWORD   arm9module          ;
+    DWORD   arm7module          ;
+
+    SetBackColor(cGrayZone);
+    UBYTE   reserved2[48]       ;
+
+    SetBackColor(cPurpleMadness);
+    UBYTE   logo[156]           ;
+    CRC16   logoCRC16           ;
+    CRC16   headerCRC16         ;
+
+    SetBackColor(cGrayZone);
+    UBYTE   reserved[160]       ;
+} NDS_header;
+
+// File Allocation Table (FAT)
+typedef struct {
+    DWORD start                 ;
+    DWORD end                   ;
+} FAT_NITRO;
+
+// FNT Directory Main-Table
+typedef struct {
+    DWORD offset                ;
+    USHORT firstID              ;
+    USHORT parentID             ;
+} FNT_MAIN;
+
+// FNT Sub-table Entry
+typedef struct {
+    union {
+        UCHAR value;
+        struct {
+            UBYTE length : 7        ;
+            BYTE isDirectory : 1    ;
+        } fields;
+    } attributes                    ;
+
+    if (attributes.value != 0) {
+        UCHAR filename[attributes.fields.length] ;
+        if (attributes.fields.isDirectory) {
+            USHORT directoryID      ;
+        }
+    }
+} FNT_ENTRY;
+
+// FNT Sub-tables
+typedef struct {
+    do {
+        FNT_ENTRY entry;
+    } while (entry.attributes.value != 0);
+} FNT_SUB;
+
+// File Name Table (FNT)
+typedef struct {
+    local quad FNTstart = FTell();
+
+    local USHORT numOfDirectories = ReadUShort(FNTstart + 6);
+    FNT_MAIN directories[numOfDirectories];
+
+    local int iDirectory;
+    for (iDirectory = 0; iDirectory < numOfDirectories; iDirectory++) {
+        FNT_SUB entries;
+    }
+} FNT_NITRO;
+
+// ARM9 and ARM7 Overlay Tables (OVT)
+typedef struct {
+    DWORD id                    ;
+    DWORD RAMaddr               ;
+    DWORD RAMSize               ;
+    DWORD BSSSize               ;
+    DWORD start                 ;
+    DWORD end                   ;
+    DWORD fileID                ;
+    DWORD reserved              ;
+} OVR_NITRO;
+
+//---------------------------------------------
+
+local quad start = FTell();
+SetBackColor(cGrayZone);
+NDS_header header;
+
+if (start + header.arm9src + header.arm9binSize <= FileSize()) {
+    FSeek(start + header.arm9src);
+    SetBackColor(cOrange);
+    UBYTE arm9code[header.arm9binSize];
+}
+else {
+    Printf("ARM9 ROM offset/size is out of range.\n");
+}
+
+if (start + header.arm7src + header.arm7binSize <= FileSize()) {
+    FSeek(start + header.arm7src);
+    SetBackColor(cSytrus);
+    UBYTE arm7code[header.arm7binSize];
+}
+else {
+    Printf("ARM7 ROM offset/size is out of range.\n");
+}
+
+if (start + header.fNameTblOff + header.fNameTblSize <= FileSize()) {
+    FSeek(start + header.fNameTblOff);
+    SetBackColor(cGreenGreens);
+    FNT_NITRO fnt;
+}
+else {
+    Printf("File Name Table (FNT) offset/size is out of range.\n");
+}
+
+if (start + header.fatOff + header.fatSize <= FileSize()) {
+    FSeek(start + header.fatOff);
+    SetBackColor(cGreenGreens);
+    FAT_NITRO fat[header.fatSize / sizeof(FAT_NITRO)];
+}
+else {
+    Printf("File Name Table (FNT) offset/size is out of range.\n");
+}
+
+if (start + header.arm9OverlayOff + header.arm9OverlaySize <= FileSize()) {
+    FSeek(start + header.arm9OverlayOff);
+    SetBackColor(cCureMarine);
+    OVR_NITRO arm9Overlays[header.arm9OverlaySize / sizeof(OVR_NITRO)];
+}
+else {
+    Printf("ARM9 Overlay Tables (OVT) offset/size is out of range.\n");
+}
+
+if (start + header.arm7OverlayOff + header.arm7OverlaySize <= FileSize()) {
+    FSeek(start + header.arm7OverlayOff);
+    SetBackColor(cPurpleMadness);
+    OVR_NITRO arm7Overlays[header.arm7OverlaySize / sizeof(OVR_NITRO)];
+}
+else {
+    Printf("ARM7 Overlay Tables (OVT) offset/size is out of range.\n");
+}

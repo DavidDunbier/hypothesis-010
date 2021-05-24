@@ -1,0 +1,77 @@
+//------------------------------------------------
+//--- 010 Editor v9.0 Binary Template
+//
+//      File: Nus3Audio.bt
+//   Authors: jam1garner
+//   Version: 1.0
+//   Purpose: Parse nus3 music archives.
+//  Category: Archive
+// File Mask: *.nus3audio
+//  ID Bytes: 4E 55 53 33 //nus3
+//   History: Smash Ultimate
+//   1.0   2018-12-31 jam1garner: Initial Commit
+//------------------------------------------------
+
+struct HEADER {
+    char magic[4]; //nus3
+    uint filesize;
+} Header;
+
+struct AUDIINDX {
+    char magic[8]; // AUDIINDX
+    uint size; // 4
+    uint count; // track count
+} Audiindx;
+
+struct TNID {
+    char magic[4]; // TNID
+    uint size; // 4
+    if(size >= Audiindx.count * 4){
+        uint trackNumbers[Audiindx.count];//some struct here
+    }
+    else {
+        ubyte data[size];
+    }
+} Tnid;
+
+struct NMOF {
+    char magic[4]; // NMOF
+    uint size; // 4
+    if(size >= Audiindx.count * 4){
+        uint names[Audiindx.count];//some struct here
+    }
+    else {
+        ubyte data[size];
+    }
+} Nmof;
+
+struct ADOF {
+    char magic[4]; // ADOF
+    uint size; // 8
+    if(size >= Audiindx.count * 8){
+        struct FILE_ENTRY {
+            uint fileOffset;
+            uint fileSize;
+        } FileEntry[Audiindx.count];
+    }
+    else {
+        ubyte data[size];
+    }
+} Adof;
+
+struct TNNM {
+    char magic[4]; // TNNM
+    uint size;
+    char string_section[size];
+} Tnnm;
+
+struct JUNK {
+    char magic[4]; // TNNM
+    uint size; // 8
+    byte padding[size];
+} Junk;
+
+struct PACK {
+    char magic[4]; // TNNM
+    uint size;
+} Pack;

@@ -1,0 +1,82 @@
+//------------------------------------------------
+//--- 010 Editor v4.0.1 Binary Template
+//
+//      File: LUKS.bt
+//   Authors: Daniel Correa
+//   Website: http://www.sinfocol.org/
+//   Version: 1.1
+//   Purpose: Template for LUKS (Linux Unified 
+//            Key Setup) hard disk encryption.
+//  Category: Drives
+// File Mask: *
+//  ID Bytes: 4C 55 4B 53 BA BE //LUKS\xBA\xBE
+//   History: 
+//   1.1   2016-02-12 SweetScape Software: Updated header for repository submission.
+//   1.0   D Correa: Initial release.
+//------------------------------------------------
+
+#define LUKS_CIPHERNAME_L 32
+#define LUKS_CIPHERMODE_L 32
+#define LUKS_HASHSPEC_L 32
+#define LUKS_DIGESTSIZE 20
+#define LUKS_HMACSIZE 32
+#define LUKS_SALTSIZE 32
+#define LUKS_NUMKEYS 8
+
+#define LUKS_MKD_ITERATIONS_MIN  1000
+#define LUKS_SLOT_ITERATIONS_MIN 1000
+
+#define LUKS_KEY_DISABLED_OLD 0
+#define LUKS_KEY_ENABLED_OLD 0xCAFE
+
+#define LUKS_KEY_DISABLED 0x0000DEAD
+#define LUKS_KEY_ENABLED  0x00AC71F3
+
+#define LUKS_STRIPES 4000
+
+#define LUKS_MAGIC "LUKS\xBA\xBE"
+#define LUKS_MAGIC_L 6
+
+#define LUKS_PHDR_SIZE (sizeof(struct luks_phdr)/SECTOR_SIZE+1)
+
+#define UUID_STRING_L 40
+
+#define LUKS_ALIGN_KEYSLOTS 4096
+
+
+typedef struct luks_phdr {
+    char magic[LUKS_MAGIC_L] ;
+
+    if (magic != LUKS_MAGIC) {
+        SetBackColor(0x0000ff);
+        Warning("File is not a LUKS disk. Bad signature.");
+        return -1;
+    }
+
+    uint16 version ;
+    char cipherName[LUKS_CIPHERNAME_L] ;
+    char cipherMode[LUKS_CIPHERMODE_L] ;
+    char hashSpec[LUKS_HASHSPEC_L] ;
+    uint32 payloadOffset ;
+    uint32 keyBytes ;
+    char mkDigest[LUKS_DIGESTSIZE] ;
+    char mkDigestSalt[LUKS_SALTSIZE] ;
+    uint32 mkDigestIterations ;
+    char uuid[UUID_STRING_L] ;
+
+    struct {
+        uint32 active ;
+
+        uint32 passwordIterations ;
+        char passwordSalt[LUKS_SALTSIZE] ;
+        
+        uint32 keyMaterialOffset ;
+        uint32 stripes ;
+    } keyblock[LUKS_NUMKEYS];
+
+    char _padding[432];
+};
+
+FSeek(0);
+BigEndian();
+luks_phdr LUKS;

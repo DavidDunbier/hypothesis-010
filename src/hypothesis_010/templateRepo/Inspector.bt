@@ -1,0 +1,55 @@
+//------------------------------------------------
+//--- 010 Editor v4.0 Binary Template
+//
+//      File: Inspector.bt
+//   Authors: SweetScape Software
+//   Version: 1.3
+//   Purpose: This template may be used 
+//            to customize the auto tab of the 
+//            Inspector with your own variables. 
+//            See the Inspector section of the 
+//            Options dialog for more information. 
+//  Category: Inspector
+//   History: 
+//   1.3   2020-06-05 SweetScape: Added Binary and GUID.
+//   1.2   2017-10-12 SweetScape: Added time64_t data type. Commented out Unicode. Updated header.
+//   1.1   SweetScape: Added hfloat data type.
+//   1.0   SweetScape: Initial release.
+//------------------------------------------------
+RequiresVersion( 11 );
+
+// Calculate the position for each variable,
+//  either at the beginning of the selection
+//  or at the current cursor position.
+local int64 pos;
+if( GetSelSize() > 0 )
+    pos = GetSelStart();
+else
+    pos = GetCursorPos();
+
+// Define variables for the inspector
+FSeek( pos ); ubyte    _b8   ;
+FSeek( pos ); byte     _si8  ;
+FSeek( pos ); ubyte    _ui8  ;
+FSeek( pos ); short    _si16 ;
+FSeek( pos ); ushort   _ui16 ;
+FSeek( pos ); int      _si32 ;
+FSeek( pos ); uint     _ui32 ;
+FSeek( pos ); int64    _si64 ;
+FSeek( pos ); uint64   _ui64 ;
+FSeek( pos ); float    _f    ;
+FSeek( pos ); double   _d    ;
+FSeek( pos ); hfloat   _hf   ;
+FSeek( pos ); char     _s [ReadStringLength(pos,256)]  ;  // limit to 256 characters
+//FSeek( pos ); wchar_t  _ws[ReadWStringLength(pos,256)] ; // limit to 256 characters - uncomment to enable
+FSeek( pos ); DOSDATE  _dd   ;
+FSeek( pos ); DOSTIME  _dt   ;
+FSeek( pos ); FILETIME _ft   ;
+FSeek( pos ); OLETIME  _ot   ;
+FSeek( pos ); time_t   _tt   ;
+FSeek( pos ); time64_t _tt64 ;
+FSeek( pos ); GUID     _guid ;
+
+// Custom read and write functions
+string ReadBinary( ubyte b )             { return IntToBinaryStr(b); }
+void   WriteBinary( ubyte &b, string s ) { b = BinaryStrToInt(s); }

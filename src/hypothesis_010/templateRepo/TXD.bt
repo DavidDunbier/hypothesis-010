@@ -1,0 +1,128 @@
+//------------------------------------------------
+//--- 010 Editor v9.0 Binary Template
+//
+//      File: TXD.bt
+//   Authors: shuax
+//   Version: 1.0
+//   Purpose: Parsing Tencent QQ txd or gmd files.
+//  Category: Misc
+// File Mask: *.txd,*.gmd
+//  ID Bytes: 54 44 01 01, 54 41 01 01
+//   History: 
+//   1.0   2020-12-15 shuax:First implementation
+//------------------------------------------------
+typedef ubyte uint8;
+
+typedef enum
+{
+    Dict     = 0x54440101,
+    Array    = 0x54410101,
+} Tag;
+
+typedef struct
+{
+    uint16 size;
+    uint8 raw[size];
+} EncryptKey ;
+
+typedef struct
+{
+    uint32 size;
+    if(size) uint8 raw[size];
+} EncryptString ;
+
+typedef struct
+{
+    uint32 size;
+    if(size) uint8 raw[size];
+} EncryptBuffer ;
+
+string ToHex(uint8 buffer[], int size)
+{
+    string s;
+    string t;
+    local int i;
+    for(i=0;i;
+    LittleEndian();
+
+    if(tag==Dict)
+    {
+        uint16 count;
+    }
+    else if(tag==Array)
+    {
+        uint32 count;
+    }
+    else
+    {
+        Printf("not supported tag %x!\n", tag);
+        Exit(-1);
+    }
+    local int i;
+    for(i=0;i;
+            switch(type)
+            {
+                case 1:
+                    EncryptKey key;
+                    uint32 size;
+                    uint32 value;
+                    break;
+                case 2:
+                    EncryptKey key;
+                    uint32 size;
+                    uint8 value;
+                    break;
+                case 6:
+                    EncryptKey key;
+                    uint32 size;
+                    uint32 value;
+                    break;
+                case 7:
+                    EncryptKey key;
+                    uint32 size;
+                    int32 value;
+                    break;
+                case 8:
+                    EncryptKey key;
+                    EncryptString value;
+                    break;
+                case 9:
+                    EncryptKey key;
+                    EncryptBuffer value;
+                    break;
+                case 11:
+                    if(tag==Dict)
+                    {
+                        EncryptKey key;
+                        uint32 size;
+                        TXD node;
+                    }
+                    else
+                    {
+                        uint32 size;
+                        TXD node;
+                    }
+                    break;
+                case 12:
+                    EncryptKey key;
+                    uint32 size;
+                    TXD node;
+                    break;
+                case 14:
+                    EncryptKey key;
+                    uint32 size;
+                    uint64 value;
+                    break;
+                case 15:
+                    EncryptKey key;
+                    uint32 size;
+                    double value;
+                    break;
+                default:
+                    Printf("not supported type %d!\n", type);
+                    Exit(-1);
+                    break;
+            }
+        } node;
+    }
+} node;

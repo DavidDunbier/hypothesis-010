@@ -1,0 +1,208 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: IB_SOBJ.bt
+//   Authors: Dave uRrr
+//   Version: 1.1
+//   Purpose: Parse Monster World Hunter: Iceborne object files.
+//  Category: Game
+// File Mask: *.sobj
+//  ID Bytes: 
+//   History: 
+//   1.1 2020-10-12 Dave uRrr : no funciona
+//   1.0 2020-10-12 Dave uRrr: Solo quiero subir esto, deja de complicarme la vida maldito programa.
+//      Janurary 2020
+//              All previous Reversed Engineered structs were brought over from Vanilla
+//          and updated for Iceborne.
+//------------------------------------------------
+
+// Header Information
+typedef struct {
+    long    signature;
+    long    fType;
+    if (fType == 6451059) {
+        long    Version;
+        long    sType;
+        long    SOHCnt;
+        if (SOHCnt > 0){long    SOH[SOHCnt];}    //Only for Otomos
+    }
+    uint32  ObjCnt;
+} Header;
+
+//------------------------------------------------
+// SOBJL File
+typedef struct {
+    long    SOH;
+    long    ind;
+    long    rSetObjecth;
+    if (rSetObjecth == 0){}
+    else{string  pat;}
+    uint32  NUL;
+} rSetObject;
+
+//------------------------------------------------
+//Include cSetObject Templates
+#include "IB_SOBJ(cStructs).bt"
+#include "IB_cSetAnimalArea.bt"
+#include "IB_cSetFishArea.bt"
+#include "IB_cEmSetter.bt"
+#include "IB_cVillageNpcSetter.bt"
+#include "IB_cOtXSetter.bt"
+#include "IB_cXTraceLogSetter.bt"
+
+//------------------------------------------------
+// SOBJ
+typedef struct {
+    long    IBsignature;
+    string  cType;
+    long    EOT0;
+    Spawn   spawn;
+    string  oName;
+    oStruct ostruct;
+    string  pointA;
+    string  pointB;
+    string  Nihongo;
+    string  EV;
+    uint32  pCount;
+    if (pCount != 0) {Parameters parameters[pCount];}
+    byte    CD[64];
+    byte    gm;
+    if(gm != 0){GM  gm;}
+    if (Strstr(cType, "cSetAnim") == 0){AnimalArea  aa;}
+    if (Strstr(cType, "cSetFish") == 0){FishArea    fa;}
+    if (Strstr(cType, "cVillage") == 0){NPC         npc;}
+    if (Strstr(cType, "cQuestNp") == 0){NPC         npc;}
+    if (Strstr(cType, "cEmDesir") == 0){EMDesire    emd;}
+    if (Strstr(cType, "cEmRepop") == 0){EMDesire    rep;}
+    if (Strstr(cType, "cEmSette") == 0){EM          em;}
+    if (Strstr(cType, "cEmGroup") == 0){EMGroup     emg;}
+    if (Strstr(cType, "cPlJumpP") == 0){PlJumpPos   pjp;}
+    if (Strstr(cType, "cTerrain") == 0){Terrain     tp;}
+    if (Strstr(cType, "cTraceLo") == 0){TraceLog    tl;}
+    if (Strstr(cType, "cKimenTr") == 0){TraceLog    tl;}
+    if (Strstr(cType, "cNpcTrac") == 0){TraceLog    tl;}
+    if (Strstr(cType, "cWildCat") == 0){TraceLog    tl;}
+    if (Strstr(cType, "cOtGroup") == 0){Group   otgrp;}
+    if (Strstr(cType, "cOtOtasuk") == 0){uint32 OtCnt; Otasuke  otsu[OtCnt];}
+    if (Strstr(cType, "cOtRandom") == 0){uint32 OtCnt; Random   rando[OtCnt]; uint32 NULL;}
+    if (Strstr(cType, "cOtPosSet") == 0){uint32 OtID;}
+    //Mostly for printing
+    local float x;
+    local float y;
+    local float z;
+    
+    x = spawn.Pos_X;
+    y = spawn.Pos_Y;
+    z = spawn.Pos_Z;
+
+    local int32 ID;
+    local int32 subID;
+    local int32 R;
+    local int32 C;
+    if (Strstr(cType, "cSetAnim") == 0){ID = aa.ID; subID = aa.subID; R = aa.rBool;}
+    if (Strstr(cType, "cSetFish") == 0){C = fa.vCnt; R = fa.rBool;}
+    if (Strstr(cType, "cPlJumpPos") == 0){ID = pjp.ID;}
+} SOBJ;
+
+//------------------------------------------------
+//Read Strings
+string ReadHead(Header& r) {
+    string s;
+    SPrintf(s, "Obj: %d", r.ObjCnt);
+    return s;
+}
+
+string ReadSOBJL(rSetObject& r) {
+    string s;
+    if(r.rSetObjecth == 0){SPrintf(s, "Index: %d",r.ind);}
+    else{SPrintf(s, "Index: %d \t " + r.pat, r.ind);}
+    return s;
+}
+
+string ReadSOBJ(SOBJ& r){
+    string s;
+    if (r.cType == "cSetAnimalArea"){
+        SPrintf(s, "ID: %d \t sID: %d \t Rarity: %d \t [X: %f \t Y: %f \t Z: %f]", r.ID, r.subID, r.R, r.x, r.y, r.z);
+    }
+    if (r.cType == "cSetFishArea") {
+        SPrintf(s, "CT: %d \t Rarity: %d \t [X: %f \t Y: %f \t Z: %f]", r.C, r.R, r.x, r.y, r.z);
+    }
+    if (r.cType == "cAssetBasicSetObject") {
+        SPrintf(s, r.oName + "\t" + r.pointA + "\t" + r.pointB + "\t [X: %f \t Y: %f \t Z: %f]", r.x, r.y, r.z);
+    }
+    if (r.cType == "cVillageNpcSetter" || r.cType == "cQuestNpcSetter"){
+        SPrintf(s, r.oName + "\t" + r.pointA + "\t" + r.pointB + "\t [X: %f \t Y: %f \t Z: %f]", r.x, r.y, r.z);
+    }
+    if (r.cType == "cPlJumpPos") {
+        SPrintf(s, "ID: %d \t [X: %f \t Y: %f \t Z: %f]", r.ID, r.x, r.y, r.z);
+    }
+    return s;
+}
+
+//------------------------------------------------
+//Display Info
+Header header;
+
+local int i;
+local int p;
+local string cType;
+local int m;
+
+//Changes the if or case
+m = 0;
+
+for (i = 0; i < header.ObjCnt; i++) {
+    if (header.fType == 10) {
+        rSetObject  sobjl;
+    }
+    if (m == 0) {
+        if (header.fType == 6451059) {
+            FSkip(4);
+            cType = ReadString(FTell());
+            switch (cType) {
+                case "cSetAnimalArea"           : FSkip(-4); SOBJ sobj;            break;
+                case "cSetFishArea"             : FSkip(-4); SOBJ sobj;              break;
+                case "cAssetBasicSetObject"     : FSkip(-4); SOBJ sobj;         break;
+                case "cEmDesireSetter"          : FSkip(-4); SOBJ sobj;           break;
+                case "cEmGroupSetter"           : FSkip(-4); SOBJ sobj;            break;
+                case "cEmRepopSetter"           : FSkip(-4); SOBJ sobj;            break;
+                case "cEmSetter"                : FSkip(-4); SOBJ sobj;                 break;
+                case "cFishingFloatSetter"      : FSkip(-4); SOBJ sobj;       break;
+                case "cPlJumpPos"               : FSkip(-4); SOBJ sobj;                break;
+                case "cOtGroupSetter"           : FSkip(-4); SOBJ sobj;            break;
+                case "cOtOtasukeSetter"         : FSkip(-4); SOBJ sobj;          break;
+                case "cOtRandomSetter"          : FSkip(-4); SOBJ sobj;           break;
+                case "cOtPosSetter"             : FSkip(-4); SOBJ sobj;              break;
+                case "cTerrainPoint"            : FSkip(-4); SOBJ sobj;             break;
+                case "cTraceLogSetter"          : FSkip(-4); SOBJ sobj;           break;
+                case "cKimenTraceLogSetter"     : FSkip(-4); SOBJ sobj;      break;
+                case "cNpcTraceLogSetter"       : FSkip(-4); SOBJ sobj;        break;
+                case "cWildCatTraceLogSetter"   : FSkip(-4); SOBJ sobj;    break;
+                case "cVillageNpcSetter"        : FSkip(-4); SOBJ sobj;         break;
+                case "cQuestNpcSetter"          : FSkip(-4); SOBJ sobj;           break;
+            }
+        }
+    }
+    if (m == 1) {
+        if (header.fType == 6451059) {
+            FSkip(4);
+            cType = ReadString(FTell());
+            if (cType == "cSetAnimalArea"          ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cSetFishArea"            ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cAssetBasicSetObject"    ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cEmDesireSetter"         ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cEmGroupSetter"          ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cEmRepopSetter"          ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cEmSetter"               ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cFishingFloatSetter"     ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cPlJumpPos"              ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cTerrainPoint"           ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cTraceLogSetter"         ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cKimenTraceLogSetter"    ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cNpcTraceLogSetter"      ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cWildCatTraceLogSetter"  ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cVillageNpcSetter"       ){FSkip(-4); SOBJ sobj;}
+            if (cType == "cQuestNpcSetter"         ){FSkip(-4); SOBJ sobj;}
+        }
+    }
+}

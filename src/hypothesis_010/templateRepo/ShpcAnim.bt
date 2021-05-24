@@ -1,0 +1,54 @@
+//------------------------------------------------
+//--- 010 Editor v7.0 Binary Template
+//
+//      File: ShpcAnim.bt
+//   Authors: jam1garner
+//   Version: 1.0
+//   Purpose: Parse shpc animation archives.
+//  Category: Archive
+// File Mask: *.shpcanim
+//  ID Bytes: 53 48 41 4E // SHAN
+//   History: Smash Ultimate
+//   1.0   2018-12-31 jam1garner: Initial Commit
+//------------------------------------------------
+
+LittleEndian();
+struct ShanHeader {
+    char magic[4];
+    uint defaultId;
+    uint count;
+    FSeek(0x80);
+    uint idMaybe[count];
+    uint offsets[count];
+} header;
+
+struct TpcbFile {
+    local uint BASE = FTell();
+    struct TpcbHeader {
+        char magic[4];
+        uint sectionOneOffset;
+        uint sectionTwoOffset;
+        uint paddingProbably;
+        uint unk, unk2, unk3, unk4;
+        float unkFloats[0xC];
+        uint unk5; // probably a size?
+        float unkFloats2[2];
+        uint count;
+    } header;
+    
+    FSeek(BASE + header.sectionOneOffset);
+    uint16 frameNums[header.count];
+    
+    FSeek(BASE + header.sectionTwoOffset);
+    struct TpcbEntry {
+        ubyte data[0xC];
+    } entries[header.count];
+};
+
+local int i;
+for(i = 0; i < header.count; i++){
+    FSeek(header.offsets[i]);
+    TpcbFile tpcb;
+}
+
+

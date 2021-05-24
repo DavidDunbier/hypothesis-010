@@ -1,0 +1,53 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: NTAG215.bt
+//   Authors: Giovanni Cammisa (gcammisa)
+//   Version: 1.0
+//   Purpose: NTAG215 Structure parsing.
+//  Category: Electronics
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//   1.0   2019-02-23 Giovanni Cammisa (gcammisa): First release
+//------------------------------------------------
+struct FILE {
+        struct Manufacturer_pages {
+            char    UID_Part_1[3] ;
+            char    Check_Byte_0[1] ;
+            char    UID_Part_2[4] ;
+            char    Check_Byte_1[1] ;
+            char    Internal[1] ;
+            char    Static_Lock_Bytes[2] ;
+            char    Capability_Container[4] ;
+        } manufacturer_pages ;
+
+        struct User_memory {
+            char Data[4];
+        } pages[126];
+
+        struct Dynamic_lock_bytes {
+            char Dynamic_lock_byte_1[1] ;
+            char Dynamic_lock_byte_2[1] ;
+            char Dynamic_lock_byte_3[1] ;
+            char RFUI[1];
+        } dynamic_lock_bytes ;
+
+        struct Config {
+            char CFG0[4] ;
+            char CFG1[4] ;
+        } config ;
+
+        struct Pwd {
+            char PWD[4] ;
+        } pwd ;
+
+        struct Pack {
+            char PACK[2] ;
+        } pack ;
+
+        struct Rfui {
+            char RFUI[2] ;
+        } rfui ;
+
+    } file ;

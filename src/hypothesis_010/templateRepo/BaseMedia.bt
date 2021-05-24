@@ -1,0 +1,168 @@
+//------------------------------------------------
+//--- 010 Editor v4.0.3 Binary Template
+//
+//      File: BaseMedia.bt
+//   Authors: @RReverser
+//   Version: 1.1
+//   Purpose: Parse ISO Base Media File Format files 
+//            (QuickTime, JPEG2000, MPEG-4, etc.).
+//            See also the MP4.bt template.
+//  Category: Video
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//   1.1   2016-02-11 SweetScape Software: Updated header for repository submission, renamed file.
+//   1.0   2013-02-26 @RReverser: Initial release.
+//
+// Note that this file parses data similar to MP4.bt
+// and these files could be merged eventually.
+//------------------------------------------------
+
+BigEndian();
+
+typedef struct
+{
+    uint32 size ;
+    char type[4] ;
+    switch (type)
+    {
+        case "ftyp":
+            char fileType[4] ;
+            break;
+
+        case "co64":
+            ubyte version ;
+            ubyte flags[3] ;
+            uint32 n ;
+            uint64 entries[n] ;
+            break;
+
+        case "ctts":
+            ubyte version ;
+            ubyte flags[3] ;
+            uint32 n ;
+            struct {
+                uint32 sampleCount ;
+                uint32 offset ;
+            } entries[n] ;
+            break;
+
+        case "elst":
+            ubyte version ;
+            ubyte flags[3] ;
+            uint32 n ;
+            struct {
+                uint32 duration ;
+                uint32 mediaTime ;
+                uint32 playbackSpeed ;
+            } entries[n] ;
+            break;
+
+        case "fiel":
+            ubyte fields ;
+            ubyte detail ;
+            break;
+
+        case "hdlr":
+            ubyte version ;
+            ubyte flags[3] ;
+            char component_type[4] ;
+            char subtype[4] ;
+            uint32 manufacturer ;
+            uint32 flags ;
+            uint32 flags_mask ;
+            string name ;
+            break;            
+
+        case "mdhd":
+            ubyte version ;
+            ubyte flags[3] ;
+            if (version < 1)
+            {
+                uint32 creation_time ;
+                uint32 modification_time ;
+            }
+            else
+            {
+                uint64 creation_time ;
+                uint64 modification_time ;
+            }
+            uint32 time_scale ;
+            if (version < 1)
+            {
+                uint32 duration ;
+            }
+            else
+            {
+                uint64 duration ;
+            }
+            uint16 lang ;
+            uint16 quality ;
+            break;
+
+        case "stco":
+            ubyte version ;
+            ubyte flags[3] ;
+            uint32 n ;
+            uint32 entries[n] ;
+            break;
+
+        case "stss":
+            ubyte version ;
+            ubyte flags[3] ;
+            uint32 n ;
+            uint32 entries[n] ;
+            break;
+
+        case "stsz":
+            ubyte version ;
+            ubyte flags[3] ;
+            uint32 uniform_size ;
+            uint32 n ;
+            uint32 entries[n] ;
+            break;
+
+        case "cmov":
+        case "edts":
+        case "mdia":
+        case "minf":
+        case "moov":
+        case "rmda":
+        case "rmra":
+        case "stbl":
+        case "trak":
+            while (FTell() - startof(this) < size)
+            {
+                struct Atom child;
+            }
+            break;
+
+        default:
+            FSeek(FTell() - 8);
+            break;
+    }
+
+    local int left = size - (FTell() - startof(this));
+    if (left > 0)
+    {
+        ubyte data[left] ;
+    }
+}
+Atom ;
+
+int GetAtomSize(Atom &atom)
+{
+    return ReadUInt(startof(atom));
+}
+
+string GetAtomName(Atom &atom)
+{
+    char type[4];
+    ReadBytes(type, startof(atom) + 4, 4);
+    return type;
+}
+
+while (!FEof())
+{
+    Atom atom;
+}

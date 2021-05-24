@@ -1,0 +1,134 @@
+//------------------------------------------------
+//--- 010 Editor v3.0.5 Binary Template
+//
+//      File: Realflow_Bin_Particles.bt
+//   Authors: Simon Beetham
+//   Version: 1.0
+//   Purpose: Reads Nextlimit Realflow BIN particle files as per .pdf delivered with Realflow
+//  Category: CAD
+// File Mask: *.bin
+//  ID Bytes: DA BA FA 00
+// History:
+//   1.0  2020-05-10 Simon Beetham: Initial version.
+//------------------------------------------------
+
+typedef struct
+{
+	float max;
+	float min;
+	float avg;
+} maxminavg_t;
+
+string fnRead_mma(float &val)
+{
+	string s;
+	return SPrintf(s, "%.6f", val);
+}
+
+string fnRead_maxminavg_t(maxminavg_t &mma)
+{
+	string s;
+	return SPrintf(s, "Max: %.6f, Min: %.6f, Avg: %.6f", mma.max, mma.min, mma.avg);
+}
+
+typedef struct
+{
+	float x;
+	float y;
+	float z;
+} xyz_t;
+
+string fnRead_xyz_t(xyz_t &xyz)
+{
+	string s;
+	return SPrintf(s, "XYZ: %.6f, %.6f, %.6f", xyz.x, xyz.y, xyz.z);
+}
+
+typedef struct
+{
+	float u;
+	float v;
+	float w;
+} texture_uvw_t;
+
+string fnRead_texture_uvw_t(texture_uvw_t &uvw)
+{
+	string s;
+	return SPrintf(s, "UVW: %.6f, %.6f, %.6f", uvw.u, uvw.v, uvw.w);
+}
+
+LittleEndian();
+
+int header_fileId;
+char header_fluid_name[250];
+short header_version;
+float header_scale_scene;
+int header_fluid_type;
+float header_elapsed_sim_time;
+int header_frame_number;
+int header_frames_per_second;
+int header_number_of_particles;
+float header_radius;
+maxminavg_t header_pressure;
+maxminavg_t header_speed;
+maxminavg_t header_temperature;
+if (header_version >= 7)
+{
+	xyz_t header_emmiter_position;
+	xyz_t header_emitter_rotation;
+	xyz_t header_emitter_scale;
+}
+
+string fnRead_header_scale_scene(float &header_scale_scene)
+{
+	string s;
+	return SPrintf(s, "%.6f", header_scale_scene);
+}
+
+string fnRead_header_elapsed_sim_time(float &header_elapsed_sim_time)
+{
+	string s;
+	return SPrintf(s, "%.6f", header_elapsed_sim_time);
+}
+
+string fnRead_header_radius(float &header_radius)
+{
+	string s;
+	return SPrintf(s, "%.6f", header_radius);
+}
+
+string fnRead_float(float &f)
+{
+	string s;
+	return SPrintf(s, "%.6f", f);
+}
+
+typedef struct
+{
+	xyz_t particle_position;
+	xyz_t particle_velocity;
+	xyz_t particle_force;
+	if (header_version >= 9)
+		xyz_t particle_vorticity;
+	if (header_version >= 3)
+		xyz_t particle_normal;
+	if (header_version >= 4)
+		int particle_neighbors;
+	if (header_version >= 5)
+		texture_uvw_t particle_uvw;
+	if (header_version >= 5)
+		short particle_info_bits;
+	float particle_age;
+	float particle_isolation_time;
+	float particle_viscosity;
+	float particle_density;
+	float particle_pressure;
+	float particle_mass;
+	float particle_temperature;
+	if (header_version < 12)
+		int particle_Id;
+	if (header_version >= 12)
+		uint64 particle_Id;
+} particle_t;
+
+particle_t particles[header_number_of_particles];

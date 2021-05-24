@@ -1,0 +1,106 @@
+//------------------------------------------------
+//--- 010 Editor v11.0.1 Binary Template
+//
+//      File: LAS.bt
+//   Authors: M. Nicke
+//    E-mail: maik.nicke@apluss.de
+//   Version: 0.1
+//   Purpose: Analysis of point-clouds in LAS-Format 
+//  Category: CAD
+// File Mask: *.las, *.laz
+//  ID Bytes: 4C 41 53 46 //LASF
+//   History:
+//   0.1    2021-05-12  M. Nicke: basis template for header and point records in formats 0, 1 without variable length records (VLR)
+//
+//     Spec.: https://www.asprs.org/divisions-committees/lidar-division/laser-las-file-format-exchange-activities
+//------------------------------------------------
+
+typedef struct {
+	char	FileSignature[4];
+	uint16	FileSourceId;
+	uint16	GlobalEncoding;
+	uint32	ProjectIdGuidData1;
+	uint16	ProjectIdGuidData2;
+	uint16	ProjectIdGuidData3;
+	char	ProjectIdGuidData4[8];
+	ubyte	VersionMajor;
+	ubyte	VersionMinor;
+    char    SystemIdentifier[32];
+    char    GeneratingSoftware[32];
+    uint16  FileCreationDayofYear;
+    uint16  FileCreationYear;
+    uint16  HeaderSize;
+    uint32  OffsettoPointData;
+    uint32  NumberofVariableLengthRecords;
+    ubyte   PointDataRecordFormat;
+    uint16  PointDataRecordLength;
+    uint32  LegacyNumberofPointRecords;
+    uint32  LegacyNumberofPointbyReturn[5];
+    double  XScaleFactor;
+    double  YScaleFactor;
+    double  ZScaleFactor;
+    double  XOffset;
+    double  YOffset;
+    double  ZOffset;
+    double  MaxX;
+    double  MinX;
+    double  MaxY;
+    double  MinY;
+    double  MaxZ;
+    double  MinZ;
+    // uint64  StartofWaveformDataPacketRecord;
+    // uint64  StartofFirstExtendedVariableLengthRecord;
+    // uint32  NumberofExtendedVariableLengthRecords;
+    // uint64  NumberofPointRecords;
+    // uint64  NumberofPointsbyReturn[15];
+} LASHEADER;
+
+typedef struct {
+    int32   X;
+    int32   Y;
+    int32   Z;
+    uint16  Intensity;
+    ubyte   Flags;
+    ubyte   Classification;
+    byte    ScanAngleRank;
+    ubyte   UserData;
+    uint16  PointSourceId;
+} POINTDATARECORD0;
+
+typedef struct {
+    int32   X;
+    int32   Y;
+    int32   Z;
+    uint16  Intensity;
+    ubyte   Flags;
+    ubyte   Classification;
+    byte    ScanAngleRank;
+    ubyte   UserData;
+    uint16  PointSourceId;
+    double  GpsTime;
+} POINTDATARECORD1;
+
+//---------------------------------------------
+
+LittleEndian(); 
+SetBackColor( cLtAqua );
+
+LASHEADER LasHeader;
+if( LasHeader.FileSignature != "LASF")
+{
+	Warning( "File is not a valid LAS. Template stopped." );
+	return -1;
+};
+
+SetBackColor( cLtRed );
+{
+    switch( LasHeader.PointDataRecordFormat )
+    {
+    case 0:
+        if( LasHeader.PointDataRecordLength == 20)
+            POINTDATARECORD0    PointDataRecord[LasHeader.LegacyNumberofPointRecords];
+    case 1:
+        if( LasHeader.PointDataRecordLength == 28)
+    		POINTDATARECORD1    PointDataRecord[LasHeader.LegacyNumberofPointRecords];
+   }
+};
