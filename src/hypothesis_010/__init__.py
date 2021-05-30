@@ -10,6 +10,9 @@ import py010parser
 # from bson import BSON -- Apparently this isn't doing much, was from some testing I did earlier
 from hypothesis import strategies as st
 
+import struct
+import sys
+
 __version__ = "0.0.1"
 __all__ = ["from_template"]
 
@@ -19,102 +22,142 @@ For safety's sake I've been nooby and hard-coded the appropriate values so far
     
 Check the two's compliment thing - a bunch of the things have that specified. As well as the specifications of the double precision and what not.
 """
+
+
+
+"""
+Here are some functions that I was gonna use to convert basic types into bytes.
+These account for the different types in strategy_assignment_dict, of which there aren't many.
+It's getting them converted to bytes when all you have to go on is their generated types later on, without regard for their sign or format.
+You could apply a recursive strategy to find every end element but it won't account for limits on the strategy used to generate the example, and might cause issues when accounting for sign or format'
+"""
+def to_bytes_int(x: int, sign: bool) -> bytes:
+    return x.to_bytes((x.bit_length() + 7) // 8, byteorder=sys.byteorder, signed=sign)
+
+def to_bytes_char(x: chr) -> bytes:
+    return bytes(x, "utf-8")
+
+def to_bytes_float(x: float, float_format: str) -> bytes:
+    return bytes(bytearray(struct.pack(float_format, x)))
+
+"""
+Unfinished - because of the problems listed above
+"""
+def to_bytes_list(list_in: list) -> bytes:
+    bytestring = b""
+    for elem in list_in:
+        if isinstance(elem, chr):
+            bytestring.append(to_bytes_char(elem))
+    
+    return bytestring
+            
+    
+"""
+Global assignment dictionary for primitive types used, and the function or functions you would use to write their generated examples into bytestrings
+"""
 strategy_assignment_dict = {
-    "int": st.integers(
+    "int": (st.integers(
         min_value=-2147483648, max_value=2147483647
-    ),  # Check the two's compliment thing
-    "unsignedint": st.integers(min_value=0, max_value=4294967295),
-    "uint": st.integers(min_value=0, max_value=4294967295),  # unsigned int
-    "int16": st.integers(min_value=-32768, max_value=32767),  # short, no?
-    "uint16": st.integers(min_value=0, max_value=65535),  # unsigned short
-    "unsignedint16": st.integers(min_value=0, max_value=65535),  # unsigned short
-    "int64": st.integers(
+    ), partial(to_bytes_int, sign=True)),  # Check the two's compliment thing
+    "unsignedint": (st.integers(min_value=0, max_value=4294967295), partial(to_bytes_int, sign=False)),
+    "uint": (st.integers(min_value=0, max_value=4294967295), partial(to_bytes_int, sign=False)),  # unsigned int
+    "int16": (st.integers(min_value=-32768, max_value=32767), partial(to_bytes_int, sign=True)),  # short, no?
+    "uint16": (st.integers(min_value=0, max_value=65535), partial(to_bytes_int, sign=False)),  # unsigned short
+    "unsignedint16": (st.integers(min_value=0, max_value=65535), partial(to_bytes_int, sign=False)),  # unsigned short
+    "int64": (st.integers(
         min_value=-9223372036854775808, max_value=9223372036854775807
-    ),  # 8 byte int, two's compliment?
-    "uint64": st.integers(min_value=0, max_value=18446744073709551615),
-    "unsigned nt64": st.integers(min_value=0, max_value=18446744073709551615),
-    "short": st.integers(min_value=-32768, max_value=32767),
-    "unsignedshort": st.integers(min_value=0, max_value=65535),
-    "ushort": st.integers(min_value=0, max_value=65535),  # unsigned short
-    "word": st.integers(min_value=0, max_value=65535),  # unsigned short
-    "dword": st.integers(
+    ), partial(to_bytes_int, sign=True)),  # 8 byte int, two's compliment?
+    "uint64": (st.integers(min_value=0, max_value=18446744073709551615), partial(to_bytes_int, sign=False)),
+    "unsignedint64": (st.integers(min_value=0, max_value=18446744073709551615), partial(to_bytes_int, sign=False)),
+    "short": (st.integers(min_value=-32768, max_value=32767), partial(to_bytes_int, sign=True)),
+    "unsignedshort": (st.integers(min_value=0, max_value=65535), partial(to_bytes_int, sign=False)),
+    "ushort": (st.integers(min_value=0, max_value=65535), partial(to_bytes_int, sign=False)),  # unsigned short
+    "word": (st.integers(min_value=0, max_value=65535), partial(to_bytes_int, sign=False)),  # unsigned short
+    "dword": (st.integers(
         min_value=-2147483648, max_value=2147483647
-    ),  # Check the two's compliment thing, it's an int
-    "long": st.integers(
+    ), partial(to_bytes_int, sign=True)),  # Check the two's compliment thing, it's an int
+    "long": (st.integers(
         min_value=-9223372036854775808, max_value=9223372036854775808
-    ),  # Do I need to account for 32-bit machines??
-    "longlong": st.integers(
+    ), partial(to_bytes_int, sign=True)),  # Do I need to account for 32-bit machines??
+    "longlong": (st.integers(
         min_value=-9223372036854775808, max_value=9223372036854775808
-    ),  # Turns out on a 64-bit compiler they're the same
-    "unsignedlong": st.integers(
+    ), partial(to_bytes_int, sign=True)),  # Turns out on a 64-bit compiler they're the same
+    "unsignedlong": (st.integers(
         min_value=0, max_value=18446744073709551615
-    ),  # Do I need to account for 32-bit machines??
-    "ulong": st.integers(
+    ), partial(to_bytes_int, sign=False)),  # Do I need to account for 32-bit machines??
+    "ulong": (st.integers(
         min_value=0, max_value=18446744073709551615
-    ),  # Do I need to account for 32-bit machines??
-    "float": st.floats(width=32),
-    "double": st.floats(width=64),  # but bigger I guess right?
-    "hfloat": st.floats(width=16),  # floats with a smaller width?
-    "byte": st.characters(
+    ), partial(to_bytes_int, sign=False)),  # Do I need to account for 32-bit machines??
+    "float": (st.floats(width=32), partial(to_bytes_float, float_format="!f")),
+    "double": (st.floats(width=64), partial(to_bytes_float, float_format="!d")),  # but bigger I guess right?
+    "hfloat": (st.floats(width=16), partial(to_bytes_float, float_format="!e")),  # floats with a smaller width?
+    "byte": (st.characters(
         min_codepoint=0, max_codepoint=255
-    ),  # 8 bits on the bson spec, char in the parsed file?
-    "ubyte": st.characters(
+    ), to_bytes_char),  # 8 bits on the bson spec, char in the parsed file?
+    "ubyte": (st.characters(
         min_codepoint=0, max_codepoint=255
-    ),  # Says unsigned char in the parsed file?
-    "char": st.characters(min_codepoint=0, max_codepoint=255),
-    "unsignedchar": st.characters(
+    ), to_bytes_char),  # Says unsigned char in the parsed file?
+    "char": (st.characters(min_codepoint=0, max_codepoint=255), to_bytes_char),
+    "unsignedchar": (st.characters(
         min_codepoint=0, max_codepoint=255
-    ),  # I mean python doesn't encode characters below 0, Idk what to make of that
-    "uchar": st.characters(
+    ), to_bytes_char),  # I mean python doesn't encode characters below 0, Idk what to make of that
+    "uchar": (st.characters(
         min_codepoint=0, max_codepoint=255
-    ),  # I mean python doesn't encode characters below 0, Idk what to make of that
-    "second": st.integers(
+    ), to_bytes_char),  # I mean python doesn't encode characters below 0, Idk what to make of that
+    "second": (st.integers(
         min_value=0, max_value=31
-    ),  # dostime strats, they're of a certain bitsize and yes this is THAT jank
-    "minute": st.integers(min_value=0, max_value=63),
-    "hour": st.integers(min_value=0, max_value=31),
-    "tagdostime": st.tuples(
+    ), partial(to_bytes_int, sign=False)),  # dostime strats, they're of a certain bitsize and yes this is THAT jank
+    "minute": (st.integers(min_value=0, max_value=63), partial(to_bytes_int, sign=False)),
+    "hour": (st.integers(min_value=0, max_value=31), partial(to_bytes_int, sign=False)),
+    "tagdostime": (st.tuples(
         st.integers(min_value=0, max_value=31),
         st.integers(min_value=0, max_value=63),
         st.integers(min_value=0, max_value=31),
-    ),
-    "day": st.integers(min_value=0, max_value=31),
-    "month": st.integers(min_value=0, max_value=15),
-    "year": st.integers(min_value=0, max_value=127),
-    "tagdosdate": st.tuples(
+    ), lambda t: b"".join(map(partial(to_bytes_int, sign=False), t))),
+    "day": (st.integers(min_value=0, max_value=31), partial(to_bytes_int, sign=False)),
+    "month": (st.integers(min_value=0, max_value=15), partial(to_bytes_int, sign=False)),
+    "year": (st.integers(min_value=0, max_value=127), partial(to_bytes_int, sign=False)),
+    "tagdosdate": (st.tuples(
         st.integers(min_value=0, max_value=31),
         st.integers(min_value=0, max_value=15),
         st.integers(min_value=0, max_value=127),
-    ),
-    "dwlowdatetime": st.integers(
+    ), lambda t: b"".join(map(partial(to_bytes_int, sign=False), t))),
+    "dwlowdatetime": (st.integers(
         min_value=-2147483648, max_value=2147483647
-    ),  # Check the two's compliment thing, it's an int
-    "dwhighdatetime": st.integers(
+    ), partial(to_bytes_int, sign=True)),  # Check the two's compliment thing, it's an int
+    "dwhighdatetime": (st.integers(
         min_value=-2147483648, max_value=2147483647
-    ),  # Check the two's compliment thing, it's an int
-    "_filetime": st.tuples(
+    ), partial(to_bytes_int, sign=True)),  # Check the two's compliment thing, it's an int
+    "_filetime": (st.tuples(
         st.integers(min_value=-2147483648, max_value=2147483647),
         st.integers(min_value=-2147483648, max_value=2147483647),
-    ),
+    ), lambda t: b"".join(map(partial(to_bytes_int, sign=True), t))),
 }
 
-unassigned_strats = []
+unassigned_strats = [] #For listing off objects that don't have a strategy in either the tree above or a way to compose them in parseTree below
 
+"""
+Global variables for where the strategies to be used in the filetype parsed are written,
+And blank context is used as a starter string for contexts to be written to during parseTree
+"""
 strat_dict = {}
 blank_context = ""
-
-
-def strat_assign(node_name: str) -> st.SearchStrategy[any]:
+gen_as_bytes = True
+                 
+def strat_assign(node_name: str, gen_as_bytes: bool) -> st.SearchStrategy[any]:
     nodename = node_name.lower()
     nodename = nodename.lstrip()
     nodename = nodename.rstrip()
     if nodename in strategy_assignment_dict:
         print("Strat assigned")
-        return strategy_assignment_dict[nodename]
+        strat, function = strategy_assignment_dict[nodename]
+        if gen_as_bytes:
+            return strat.map(function)
+        return strat
     else:
         print(node_name + " needs assigning?")
         unassigned_strats.append(node_name)
-        return None
+        return st.none()
 
 
 def from_template(template_name: str) -> st.SearchStrategy[bytes]:
@@ -122,30 +165,30 @@ def from_template(template_name: str) -> st.SearchStrategy[bytes]:
 
     ast = py010parser.parse_file(
         template_name
-    )  # Remove the IO from your library - Put it in a testing module or something. How?
+    )  # Remove the IO from your library - Put it in a testing module or something
     # ast.show()
-    parseTree(ast, blank_context)
-
-    # OLDER WORK, IGNORE
-    # byte_count = 0
-    # child_strategies = []
-    # fixedrecursivehelper(ast, child_strategies)
-    # recursivehelper(ast, byte_count, child_strategies) #Visits the nodes, still yet to assign bytes to them.
+    
+    gen_as_bytes = True
+    ast_strat = parseTree(ast, blank_context)
+    
 
     # assert ast is True, "we know we don't actually handle templates yet"
     return st.just(b"")
 
-
-def createContextName(parentcontext: str, node: py010parser.c_ast.Node) -> str:
+def getNodeName(node: py010parser.c_ast.Node) -> str:
     if hasattr(node, "name"):
-        contextName = parentcontext + node.name
-        return contextName
+        node_name = node.name
+        return node_name
     else:
-        contextName = parentcontext + node.__class__.__name__
-        return contextName
+        node_name = node.__class__.__name__
+        return node_name
+    
+def createContextName(parentcontext: str, node: py010parser.c_ast.Node) -> str:
+    return parentcontext + getNodeName(node)
 
 
 def parseTree(node: py010parser.c_ast.Node, context: str) -> st.SearchStrategy[any]:
+    #Create current context - path to reach this node
     mycontext = createContextName(context, node)
     print(mycontext)
 
@@ -163,7 +206,7 @@ def parseTree(node: py010parser.c_ast.Node, context: str) -> st.SearchStrategy[a
                     print(strat_dict[mycontext], file=result_file)
                 return strat_dict[
                     mycontext
-                ]  # This does work but the object returned is enormous
+                ]
             else:
                 print(
                     "No valid root node found, check through the produced strat_dict and find the corresponding root to look for in the function"
@@ -173,52 +216,44 @@ def parseTree(node: py010parser.c_ast.Node, context: str) -> st.SearchStrategy[a
         # ArrayDecls in this ast always include a type of object in that array and a dimension attribute, which I presume to be number of objects inside the array.
         elif isinstance(node, py010parser.c_ast.ArrayDecl):
             print("Parsing array")
-            array_contents = []
             array_length = int(node.dim.value)
             parseTree(node.type, mycontext)
-            for i in range(array_length):
-                if hasattr(node.type, "name"):
-                    array_contents.append(strat_dict[(mycontext + node.type.name)])
-                else:
-                    array_contents.append(
-                        strat_dict[(mycontext + node.type.__class__.__name__)]
-                    )
-            strat_dict[mycontext] = st.tuples(*array_contents)
-
+            array_contents = getNodeName(node.type)
+            strat_dict[mycontext] = st.lists(
+                    elements=strat_dict[(mycontext+array_contents)],
+                    min_size=array_length,
+                    max_size=array_length,
+                ).map(tuple)
+                
+            
         elif isinstance(node, py010parser.c_ast.Struct):
             if node.name.lower() in strategy_assignment_dict:
                 print(
                     "It's a global dtype stupid, should be in the strategy_assignment_dict"
                 )
-                strat_dict[mycontext] = strat_assign(node.name.lower())
+                strat_dict[mycontext] = strat_assign(node.name.lower(), gen_as_bytes) 
             else:
                 struct_strat_list = []
                 for child_name, child in node.children():
                     parseTree(child, mycontext)
-                    if hasattr(child, "name"):
-                        recorded_child_name = child.name
-                    else:
-                        recorded_child_name = child.__class__.__name__
+                    recorded_child_name = getNodeName(child)
                     struct_strat_list.append(
                         strat_dict[(mycontext + recorded_child_name)]
                     )
-                strat_dict[mycontext] = st.tuples(*struct_strat_list)
+                    strat_dict[mycontext] = st.tuples(*struct_strat_list)
 
         # Decls mishandles a lot of things - Mainly, any decls that have more than one child.
         # This is because in most examples I've looked at it will rely on types and/or values evaluated in some other part of the tree - Entirely possible to look them up, given more time.
         elif isinstance(node, py010parser.c_ast.Decl):
             if len(node.children()) == 1:
                 parseTree(node.children()[0][1], mycontext)
-                if hasattr(node.children()[0][1], "name"):
-                    node_name = node.children()[0][1].name
-                else:
-                    node_name = node.children()[0][1].__class__.__name__
+                node_name = getNodeName(node.children()[0][1])
                 strat_dict[mycontext] = strat_dict[(mycontext + node_name)]
             else:
                 print(
                     "This decl of: "
                     + node.name
-                    + " is one of those cases with two children, a type and a dimension. Is that dimension bit size?"
+                    + " is one of those cases with two children, a type and a dimension."
                 )
                 print("Leaving this decl alone")
 
@@ -257,10 +292,7 @@ def parseTree(node: py010parser.c_ast.Node, context: str) -> st.SearchStrategy[a
         # General case
         else:
             for child_name, child in node.children():
-                if hasattr(child, "name"):
-                    print("Accessing: " + child.name)
-                else:
-                    print("Accessing: " + child.__class__.__name__)
+                print("Accessing: " + getNodeName(child))
                 parseTree(child, mycontext)
                 # Do I need to add an entry for this general context if the strategy used here is never looked up? Probably
 
@@ -269,18 +301,37 @@ def parseTree(node: py010parser.c_ast.Node, context: str) -> st.SearchStrategy[a
         if isinstance(node, py010parser.c_ast.IdentifierType):
             if hasattr(node, "name"):
                 mycontext += node.name
-                my_strategy = strat_assign(node.name)
+                my_strategy = strat_assign(node.name, gen_as_bytes)
             elif hasattr(node, "names"):
                 node_name = ""
                 for item in node.names:
                     node_name += item
                 mycontext += node_name
-                my_strategy = strat_assign(node_name)
+                my_strategy = strat_assign(node_name, gen_as_bytes)
             strat_dict[mycontext] = my_strategy
         else:
             print(
                 "This isn't an identifier type, which means it's some other value probably important to the parent. Exiting without doing anything"
             )
+   
+concatenated_example = b"" #Where the byte string from the example drawn gets placed. I know it's bad practice but it works!
+
+
+def example_to_bytes(strat: st.SearchStrategy[any]) -> bytes:
+    strat_example = strat.example()  
+    to_bytes_recursive(strat_example)
+    return concatenated_example
+    
+
+
+
+def to_bytes_recursive(strat: tuple):
+    for elem in strat:
+        if isinstance(elem, bytes):
+            global concatenated_example
+            concatenated_example += elem
+        else:
+            to_bytes_recursive(elem)
 
 
 """
@@ -411,6 +462,11 @@ def recursivehelper(
         else:
             print(node, "is an end node of another type")
 
+
+"""
+An experiment at bytestring making
+"""
+        
 
 """
 Back to the good stuff here
