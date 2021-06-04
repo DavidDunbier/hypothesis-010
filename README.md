@@ -15,9 +15,25 @@ and [many more from the community](https://www.google.com/search?q=github+010+te
 `hypothesis-010` has been developed to a proof-of-concept stage over the course of this project. Inspired by
 [`FormatFuzzer`](https://uds-se.github.io/FormatFuzzer/) and the wide variety of
 useful features already integrated into Hypothesis, hypothesis-010 successfully supports a small subset of the filetypes
-listed above. 
+listed above.
 
-## Supported versions
+In terms of using this tool:
+I did most of my work on this tool, including testing and debugging, in the Spyder (4.1.5) IDE provided by Anaconda.
+I recommend running my tool with this IDE to see the internal functions and data structures I used, as Spyder provides
+an interactive session in which everything used in the file can be accessed.
+
+
+It is also possible to run the tool from the command line using the following command:
+python __init__.py (filetemplate) (gen_as_bytes)
+Where: 
+ - (filetemplate) = Path to the desired binary file template
+ - (gen_as_bytes) = Boolean for how the resulting strategy should create it's examples:
+         - True generates the strategy to produce bytestrings of the file template
+         - False generates the strategy to produce examples of the file template in python objects
+
+But the resulting output isn't very useful, showing the strategy generated without any formatting.
+
+## Supported versions and dependencies
 
 `hypothesis-010` requires Python 3.6 or later, along with the following library dependencies:
  - [py010parser 0.1.18](https://pypi.org/project/py010parser/)
