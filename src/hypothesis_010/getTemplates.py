@@ -24,9 +24,9 @@ types_used = {}
 
 BT_Repo = "https://www.sweetscape.com/010editor/repository/templates/"
 
-#Scrape the site with the url specified by sitename, to get binary templates
-#VERY specific to this project but it creates the directory templateRepo and fills it with the file template it can scrape
-#It couldn't scrape every site properly - Properly being each page's ability to be parsed into an IR
+# Scrape the site with the url specified by sitename, to get binary templates
+# VERY specific to this project but it creates the directory templateRepo and fills it with the file template it can scrape
+# It couldn't scrape every site properly - Properly being each page's ability to be parsed into an IR
 def scrapeSite(sitename: str):
     target = os.path.join(os.getcwd(), "templateRepo")
     if not (os.path.isdir(target)):
@@ -45,8 +45,9 @@ def scrapeSite(sitename: str):
         write_file.close()
         print("Wrote file: " + link.text + ", go and look")
 
-#Go through the templateRepo directory created by scrapesite above
-#Discovers the composition of each file's IR once parser using node_explorer as well
+
+# Go through the templateRepo directory created by scrapesite above
+# Discovers the composition of each file's IR once parser using node_explorer as well
 def discover_types_used():
     currentdir = os.getcwd()
     target = os.path.join(os.getcwd(), "templateRepo")
@@ -63,7 +64,8 @@ def discover_types_used():
             print("File type sucks, can't do " + filename)
     os.chdir(currentdir)
 
-#Helper function for discover_types_used
+
+# Helper function for discover_types_used
 def node_explorer(node: py010parser.c_ast.Node):
     if type(node) not in types_used:
         types_used[type(node)] = 1
