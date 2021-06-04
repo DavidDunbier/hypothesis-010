@@ -4,7 +4,7 @@ A tool to generate [Hypothesis](https://hypothesis.readthedocs.io) strategies fo
 that matches some [010 editor](https://www.sweetscape.com/010editor/)
 binary template.
 
-This would include over [170 binary file formats built in](https://www.sweetscape.com/010editor/repository/templates/),
+This would extend to include over [170 binary file formats built in](https://www.sweetscape.com/010editor/repository/templates/),
 and [many more from the community](https://www.google.com/search?q=github+010+templates).
 
 [Here's the PyPI page](https://pypi.org/project/hypothesis-010/) and
