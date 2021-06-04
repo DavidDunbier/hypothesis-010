@@ -9,14 +9,12 @@ Imported libraries were necessary for this project and are not my own work.
 Everything else that isn't sourced from libraries in this code was my own work.
 All of my work in this file was discussed with my supervisor Zac.
 """
-import datetime
 
-# Libraries for use in testing
+import datetime
 import os
 import struct
 import sys
 from functools import partial
-
 import py010parser
 from hypothesis import strategies as st
 
@@ -393,16 +391,9 @@ def parseTree(node: py010parser.c_ast.Node, context: str) -> st.SearchStrategy[a
             )
 
 
-# To generate examples of the produced file strategy
-# Only used during bytestring generation when gen_as_bytes is set to True!
-def example_to_bytes(strat: st.SearchStrategy[any]) -> bytes:
-    strat_example = strat.example()
-    strat_example = to_bytes_recursive(strat_example)
-    return strat_example
-
-
-# Defined this way as list or tuple strategies are handled during generation to output tuples
+# To generate a single bytestring from examples produced by the generated strategy
 # Only used during bytestring generation
+# Defined this way as list or tuple strategies are handled during generation to output tuples
 def to_bytes_recursive(strat: tuple):
     concatenated_example = b""
     for elem in strat:
