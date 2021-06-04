@@ -34,13 +34,15 @@ But the resulting output in the terminal isn't very useful, showing the strategy
 
 The getTemplates file is simply a method of fetching the binary templates listed from the sweetscape repository above, and should also be run by the Spyder IDE if required. I have also included the fetched templates as a part of this repository in the directory "templateRepo", so it shouldn't be necessary to run this file.
 
+## Acknowledgements
+
 I acknowledge that the work for this project does not include the work from the following libraries, all of which are required to use this tool:
  - py010parser
  For the web scraper tool (not required for use of hypothesis-010):
  - beautifulsoup4
  - requests
 
-Required libraries can be installed using: pip install (library_name)
+Required libraries can be installed using: `pip install library_name`
 
 ## Supported versions and dependencies
 
