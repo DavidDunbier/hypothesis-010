@@ -20,8 +20,7 @@ listed above.
 In terms of using this tool:
 I did most of my work on this tool, including testing and debugging, in the Spyder (4.1.5) IDE provided by Anaconda.
 I recommend running my tool with this IDE to see the internal functions and data structures I used, as Spyder provides
-an interactive session in which everything used in the file can be accessed.
-
+an interactive session when running the file.
 
 It is also possible to run the tool from the command line using the following command:
 python __init__.py (filetemplate) (gen_as_bytes)
@@ -31,6 +30,8 @@ Where:
 
 But the resulting output isn't very useful, showing the strategy generated without any formatting.
 
+The getTemplates file is simply a method of fetching the binary templates listed from the sweetscape repository above,
+and should also be run by the Spyder IDE if required. I have also included the fetched templates as a part of this repository in the directory "templateRepo".
 ## Supported versions and dependencies
 
 `hypothesis-010` requires Python 3.6 or later, along with the following library dependencies:
