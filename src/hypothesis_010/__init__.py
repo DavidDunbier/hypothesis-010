@@ -239,10 +239,12 @@ def from_template(template_name: str, gen_bytes: bool) -> st.SearchStrategy[byte
 
     # ast_strat now contains the file's strategy that can be used to generate valid examples
     if gen_as_bytes:
-        file_example = example_to_bytes(ast_strat)
+        print("File strategy turned into bytes")
+        file_example = ast_strat.example()
+        file_example = to_bytes_recursive(file_example)
         return file_example
     else:
-        print("File strategy not turned into bytes")
+        print("File strategy not turned into bytes.")
         file_example = ast_strat.example()
         return st.just(b"")
 
@@ -277,7 +279,7 @@ def parseTree(node: py010parser.c_ast.Node, context: str) -> st.SearchStrategy[a
             # Each file spec has their own root node however (aside from the global ones that are present in every ast)
             # This is the first place to come back to for further work and something I plan on doing on my own
             if (mycontext + "file") in strat_dict:
-                print("AST Strat assigned")
+                print("AST Strat assigned, can be found in strat_dict using the key", mycontext)
                 strat_dict[mycontext] = strat_dict[(mycontext + "file")]
                 # This with statement below writes the output strategy into a text file for your perusal
                 # with open("Result_Strat.txt", "w") as result_file:
@@ -451,6 +453,14 @@ def testing_script(number_of_unique_examples: int):
     print(
         f"Produced {len(times)} examples, of which {len(example_collection)} were unique"
     )
+
+if __name__ == '__main__':
+    if (len(sys.argv) == 3):
+        template_name = sys.argv[1]
+        print("Template name: ", template_name)
+        gen_bytes = sys.argv[2]
+        print("Generate as bytes? ", gen_bytes)
+        from_template(template_name, gen_bytes)
 
 
 """
