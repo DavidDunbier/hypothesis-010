@@ -25,7 +25,3 @@ listed above.
 The webscraper also implemented as a part of helping me develop this tool requires the following libraries:
  - [requests 2.25.1](https://pypi.org/project/requests/)
  - [beautifulsoup4 4.9.3](https://pypi.org/project/beautifulsoup4/)
-
-## Changelog
-
-Commit history can be found [here](https://github.com/DavidDunbier/hypothesis-010/blob/master/CHANGELOG.md).
