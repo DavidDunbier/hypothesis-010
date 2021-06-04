@@ -25,19 +25,21 @@ an interactive session when running the file.
 The only outward facing function is from_template, which takes in two arguments:
  - (filetemplate) = Path to the desired binary file template
  - (gen_as_bytes) = Boolean flag for how the resulting strategy should create it's examples. True generates the strategy to produce bytestrings of the file template, False generates the strategy to produce examples of the file template in python objects. Either strategy can produce valid examples of the filetype in their own format.
+
 Other functions in the file are not intended for user interaction, serving only to help produce the final output of from_template.
 
 It is also possible to run the tool from the command line using the following command:
 python __init__.py (filetemplate) (gen_as_bytes)
 But the resulting output in the terminal isn't very useful, showing the strategy generated without any formatting.
 
-The getTemplates file is simply a method of fetching the binary templates listed from the sweetscape repository above, and should also be run by the Spyder IDE if required. I have also included the fetched templates as a part of this repository in the directory "templateRepo".
+The getTemplates file is simply a method of fetching the binary templates listed from the sweetscape repository above, and should also be run by the Spyder IDE if required. I have also included the fetched templates as a part of this repository in the directory "templateRepo", so it shouldn't be necessary to run this file.
 
 I acknowledge that the work for this project does not include the work from the following libraries, all of which are required to use this tool:
  - py010parser
  For the web scraper tool (not required for use of hypothesis-010):
  - beautifulsoup4
  - requests
+
 Required libraries can be installed using: pip install (library_name)
 
 ## Supported versions and dependencies
