@@ -1,35 +1,31 @@
 # hypothesis-010
 
-A [Hypothesis](https://hypothesis.readthedocs.io) strategy for generating data
+A tool to generate [Hypothesis](https://hypothesis.readthedocs.io) strategies for generating data
 that matches some [010 editor](https://www.sweetscape.com/010editor/)
 binary template.
 
-This includes over [170 binary file formats built in](https://www.sweetscape.com/010editor/repository/templates/),
+This would include over [170 binary file formats built in](https://www.sweetscape.com/010editor/repository/templates/),
 and [many more from the community](https://www.google.com/search?q=github+010+templates).
 
 [Here's the PyPI page](https://pypi.org/project/hypothesis-010/) and
-[the GitHub repo](https://github.com/Zac-HD/hypothesis-010).
+[the GitHub repo](https://github.com/DavidDunbier/hypothesis-010) for the purposes of this COMP4560 project.
 
 ## API
 
-`hypothesis-010` is in the planning stages, inspired by
+`hypothesis-010` has been developed to a proof-of-concept stage over the course of this project. Inspired by
 [`FormatFuzzer`](https://uds-se.github.io/FormatFuzzer/) and the wide variety of
-useful features already integrated into Hypothesis.
-
-Check back soon to see what progress we've made, or [get in touch](mailto:zac@zhd.dev)
-to let me know you're interested - this is a long way from the top of my todo list.
-
+useful features already integrated into Hypothesis, hypothesis-010 successfully supports a small subset of the filetypes
+listed above. 
 
 ## Supported versions
 
-`hypothesis-010` requires Python 3.6 or later.
-In general, 0.x versions will require very recent versions of all dependencies
-because I don't want to deal with compatibility workarounds.
-
-You can [sponsor me](https://github.com/sponsors/Zac-HD) to get priority
-support, roadmap input, and prioritized feature development.
-
+`hypothesis-010` requires Python 3.6 or later, along with the following library dependencies:
+ - [py010parser 0.1.18](https://pypi.org/project/py010parser/)
+ 
+The webscraper also implemented as a part of helping me develop this tool requires the following libraries:
+ - [requests 2.25.1](https://pypi.org/project/requests/)
+ - [beautifulsoup4 4.9.3](https://pypi.org/project/beautifulsoup4/)
 
 ## Changelog
 
-Patch notes [can be found in `CHANGELOG.md`](https://github.com/Zac-HD/hypothesis-010/blob/master/CHANGELOG.md).
+Commit history can be found [here](https://github.com/DavidDunbier/hypothesis-010/blob/master/CHANGELOG.md).
