@@ -17,7 +17,7 @@ and [many more from the community](https://www.google.com/search?q=github+010+te
 useful features already integrated into Hypothesis, hypothesis-010 successfully supports a small subset of the filetypes
 listed above.
 
-## Using the tool:
+## Using the tool
 I did most of my work on this tool, including testing and debugging, in the Spyder (4.1.5) IDE provided by Anaconda.
 I recommend running my tool with this IDE to see the internal functions and data structures I used, as Spyder provides
 an interactive session when running the file.
