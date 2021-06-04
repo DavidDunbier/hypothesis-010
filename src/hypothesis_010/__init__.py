@@ -3,12 +3,15 @@
 The only public API is `from_template`; check the docstring for details.
 """
 
+"""
+Project Acknowledgements
+Imported libraries were necessary for this project and are not my own work.
+Everything else that isn't sourced from libraries in this code was my own work.
+All of my work in this file was discussed with my supervisor Zac.
+"""
 from functools import partial
-
 import py010parser
-
 from hypothesis import strategies as st
-
 import struct
 import sys
 
@@ -19,11 +22,13 @@ import datetime
 __version__ = "0.0.1"
 __all__ = ["from_template"]
 
-"""Am I accounting for different machines?
-Can  I also be cheeky and use global minimum and maximum values for the predefined types that exist in C - char, int etc?
-For safety's sake I've been nooby and hard-coded the appropriate values so far
-    
-Check the two's compliment thing - a bunch of the things have that specified. As well as the specifications of the double precision and what not.
+
+"""
+ADDITIONAL POINTS TO CONSIDER FOR FURTHER WORK
+Need to account for different machines - different architectures, compiler support etc.
+For now, I've used global minimum and maximum values for the predefined types that exist in C - char, int etc, as they're common across all machines that would use this code
+For safety's sake I've been hard-coded the appropriate values so far, but this could be revisited 
+Also, Check the two's compliment thing - a bunch of the things have that specified
 """
 
 
@@ -213,8 +218,10 @@ def parseTree(node: py010parser.c_ast.Node, context: str) -> st.SearchStrategy[a
             if (mycontext + "file") in strat_dict:
                 print("AST Strat assigned")
                 strat_dict[mycontext] = strat_dict[(mycontext + "file")]
-                with open("Result_Strat.txt", "w") as result_file:
-                    print(strat_dict[mycontext], file=result_file)
+                #This with statement below writes the output strategy into a text file for your perusal
+                #with open("Result_Strat.txt", "w") as result_file:
+                #    print(strat_dict[mycontext], file=result_file)
+                #You could definitely create a database of files like this, but I just used this for debugging purposes
                 return strat_dict[
                     mycontext
                 ]
