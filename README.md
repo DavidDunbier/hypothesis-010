@@ -27,9 +27,7 @@ It is also possible to run the tool from the command line using the following co
 python __init__.py (filetemplate) (gen_as_bytes)
 Where: 
  - (filetemplate) = Path to the desired binary file template
- - (gen_as_bytes) = Boolean for how the resulting strategy should create it's examples:
-         - True generates the strategy to produce bytestrings of the file template
-         - False generates the strategy to produce examples of the file template in python objects
+ - (gen_as_bytes) = Boolean for how the resulting strategy should create it's examples. True generates the strategy to produce bytestrings of the file template, False generates the strategy to produce examples of the file template in python objects
 
 But the resulting output isn't very useful, showing the strategy generated without any formatting.
 
