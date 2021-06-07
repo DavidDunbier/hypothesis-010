@@ -37,6 +37,7 @@ The getTemplates file is simply a method of fetching the binary templates listed
 ## Acknowledgements
 
 I acknowledge that the work for this project does not include the work from the following libraries, all of which are required to use this tool:
+ - Hypothesis, the parent library
  - py010parser
 
 For the web scraper tool (not required for use of hypothesis-010):
@@ -48,6 +49,7 @@ Required libraries can be installed using: `pip install library_name`
 ## Supported versions and dependencies
 
 `hypothesis-010` requires Python 3.6 or later, along with the following library dependencies:
+ - [hypothesis 5.36.0 or greater, the parent library](https://pypi.org/project/hypothesis/)
  - [py010parser 0.1.18](https://pypi.org/project/py010parser/)
  
 The webscraper also implemented as a part of helping me develop this tool requires the following libraries:
